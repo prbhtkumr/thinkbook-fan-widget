@@ -489,8 +489,9 @@ PlasmoidItem {
                             var segSweep = sweep / levelCount;
                             var gapAngle = Math.PI / 10;
                             var filled = hasLevel ? Math.max(0, Math.min(levelCount, levelGauge.shownLevel - root.minFanLevel + 1)) : 0;
+                            var levelWidth = ringWidth + 0.4;
                             ctx.lineCap = "butt";
-                            ctx.lineWidth = ringWidth;
+                            ctx.lineWidth = levelWidth;
                             for (var s = 0; s < levelCount; ++s) {
                                 var segStart = start + s * segSweep + gapAngle / 2;
                                 var segEnd = start + (s + 1) * segSweep - gapAngle / 2;
@@ -500,7 +501,7 @@ PlasmoidItem {
                                 ctx.arc(cx, cy, innerR, segStart, segEnd, false);
                                 ctx.stroke();
                                 if (segFill > 0.001) {
-                                    ctx.strokeStyle = root.graphAccentColor;
+                                    ctx.strokeStyle = root.gaugeLevelColor;
                                     ctx.beginPath();
                                     ctx.arc(cx, cy, innerR, segStart, segStart + (segEnd - segStart) * segFill, false);
                                     ctx.stroke();
