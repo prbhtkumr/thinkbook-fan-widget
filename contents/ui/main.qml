@@ -30,6 +30,7 @@ PlasmoidItem {
     property int lastHistoryUpdated: 0
     property var graphCanvasItem: null
     readonly property int graphDuration: Math.max(10, Math.min(900, Plasmoid.configuration.graphDuration || 60))
+    readonly property color graphAccentColor: Qt.lighter(Kirigami.Theme.highlightColor, 1.4)
     readonly property int minFanLevel: Math.max(3, Math.min(7, configMinLevel))
     readonly property string iconSource: {
         var source = Plasmoid.configuration.iconSource
@@ -677,14 +678,74 @@ PlasmoidItem {
                             }
 
                             var textColor = Kirigami.Theme.textColor;
-                            ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.12);
-                            ctx.lineWidth = 1;
-                            for (var line = 0; line <= 3; ++line) {
-                                var gy = Math.round(h * line / 3) + 0.5;
+                            var minC = 30;
+                            var maxC = 100;
+                            var yFor = function(c) {
+                                return h - ((c - minC) / (maxC - minC)) * h;
+                            };
+
+                            var drawDashedLine = function(points, dash, gap) {
+                                var drawing = true;
+                                var remaining = dash;
                                 ctx.beginPath();
-                                ctx.moveTo(0, gy);
-                                ctx.lineTo(w, gy);
+                                for (var p = 1; p < points.length; ++p) {
+                                    var x0 = points[p - 1].x;
+                                    var y0 = points[p - 1].y;
+                                    var x1 = points[p].x;
+                                    var y1 = points[p].y;
+                                    var dx = x1 - x0;
+                                    var dy = y1 - y0;
+                                    var len = Math.sqrt(dx * dx + dy * dy);
+                                    if (len <= 0.001) {
+                                        continue;
+                                    }
+                                    var ux = dx / len;
+                                    var uy = dy / len;
+                                    var pos = 0;
+                                    while (pos < len) {
+                                        var step = Math.min(remaining, len - pos);
+                                        if (drawing) {
+                                            ctx.moveTo(x0 + ux * pos, y0 + uy * pos);
+                                            ctx.lineTo(x0 + ux * (pos + step), y0 + uy * (pos + step));
+                                        }
+                                        pos += step;
+                                        remaining -= step;
+                                        if (remaining <= 0.001) {
+                                            drawing = !drawing;
+                                            remaining = drawing ? dash : gap;
+                                        }
+                                    }
+                                }
                                 ctx.stroke();
+                            };
+
+                            var drawDashedHorizontal = function(y, dash, gap) {
+                                var x = 0;
+                                while (x < w) {
+                                    ctx.moveTo(x, y);
+                                    ctx.lineTo(Math.min(w, x + dash), y);
+                                    x += dash + gap;
+                                }
+                                ctx.stroke();
+                            };
+
+                            var guides = [40, 60, 80, 100];
+                            ctx.font = "10px sans-serif";
+                            ctx.textAlign = "left";
+                            ctx.textBaseline = "middle";
+                            for (var g = 0; g < guides.length; ++g) {
+                                var guideY = Math.round(yFor(guides[g])) + 0.5;
+                                ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.12);
+                                ctx.lineWidth = 1;
+                                ctx.beginPath();
+                                ctx.moveTo(0, guideY);
+                                ctx.lineTo(w, guideY);
+                                ctx.stroke();
+
+                                ctx.fillStyle = textColor;
+                                ctx.globalAlpha = 0.6;
+                                ctx.fillText(root.tempUnitLabel(guides[g]), 4, Math.max(8, Math.min(h - 8, guideY)));
+                                ctx.globalAlpha = 1;
                             }
 
                             var data = root.tempHistory;
@@ -699,31 +760,26 @@ PlasmoidItem {
                                 return;
                             }
 
-                            var minC = 30;
-                            var maxC = 100;
-                            var yFor = function(c) {
-                                return h - ((c - minC) / (maxC - minC)) * h;
-                            };
                             var newest = data[data.length - 1].t;
                             var oldest = newest - root.graphDuration;
                             var xFor = function(t) {
                                 return ((t - oldest) / root.graphDuration) * w;
                             };
 
-                            ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.35);
-                            ctx.lineWidth = 1;
-                            ctx.beginPath();
+                            var rawPoints = [];
+                            var maxRaw = -Infinity;
                             for (var i = 0; i < data.length; ++i) {
-                                var ry = yFor(data[i].raw);
-                                if (i === 0) {
-                                    ctx.moveTo(xFor(data[i].t), ry);
-                                } else {
-                                    ctx.lineTo(xFor(data[i].t), ry);
+                                rawPoints.push({ "x": xFor(data[i].t), "y": yFor(data[i].raw) });
+                                if (data[i].raw > maxRaw) {
+                                    maxRaw = data[i].raw;
                                 }
                             }
-                            ctx.stroke();
 
-                            ctx.strokeStyle = Kirigami.Theme.highlightColor;
+                            ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.45);
+                            ctx.lineWidth = 1;
+                            drawDashedLine(rawPoints, 3, 3);
+
+                            ctx.strokeStyle = root.graphAccentColor;
                             ctx.lineWidth = 2;
                             ctx.beginPath();
                             for (var j = 0; j < data.length; ++j) {
@@ -736,15 +792,21 @@ PlasmoidItem {
                             }
                             ctx.stroke();
 
-                            ctx.fillStyle = textColor;
-                            ctx.globalAlpha = 0.6;
-                            ctx.font = "10px sans-serif";
-                            ctx.textAlign = "left";
-                            ctx.textBaseline = "top";
-                            ctx.fillText(root.tempUnitLabel(100), 4, 2);
-                            ctx.textBaseline = "bottom";
-                            ctx.fillText(root.tempUnitLabel(30), 4, h - 2);
-                            ctx.globalAlpha = 1;
+                            if (maxRaw > -Infinity) {
+                                var peakY = Math.round(yFor(maxRaw)) + 0.5;
+                                ctx.strokeStyle = root.graphAccentColor;
+                                ctx.lineWidth = 1;
+                                ctx.beginPath();
+                                drawDashedHorizontal(peakY, 6, 3);
+
+                                ctx.fillStyle = textColor;
+                                ctx.globalAlpha = 0.85;
+                                ctx.font = "10px sans-serif";
+                                ctx.textAlign = "right";
+                                ctx.textBaseline = "bottom";
+                                ctx.fillText("Peak " + root.tempUnitLabel(maxRaw), w - 4, Math.max(12, peakY - 2));
+                                ctx.globalAlpha = 1;
+                            }
                         }
                     }
 
@@ -752,10 +814,18 @@ PlasmoidItem {
                         Layout.fillWidth: true
                         spacing: Kirigami.Units.smallSpacing
 
-                        Rectangle {
-                            Layout.preferredWidth: 14
-                            Layout.preferredHeight: 2
-                            color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.35)
+                        Row {
+                            Layout.alignment: Qt.AlignVCenter
+                            spacing: 2
+
+                            Repeater {
+                                model: 4
+                                Rectangle {
+                                    width: 3
+                                    height: 2
+                                    color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.45)
+                                }
+                            }
                         }
 
                         PlasmaComponents3.Label {
@@ -771,7 +841,7 @@ PlasmoidItem {
                         Rectangle {
                             Layout.preferredWidth: 14
                             Layout.preferredHeight: 2
-                            color: Kirigami.Theme.highlightColor
+                            color: root.graphAccentColor
                         }
 
                         PlasmaComponents3.Label {
