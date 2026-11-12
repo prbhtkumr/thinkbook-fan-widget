@@ -6,6 +6,10 @@
             <label>Lowest fan level the widget will use.</label>
             <default>3</default>
         </entry>
+        <entry name="temperatureUnit" type="String">
+            <label>Temperature unit for the display.</label>
+            <default>auto</default>
+        </entry>
         <entry name="curveAc" type="String">
             <label>Curve on AC power.</label>
             <default>auto</default>

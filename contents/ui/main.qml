@@ -72,6 +72,25 @@ PlasmoidItem {
         }
         return ""
     }
+    readonly property bool useFahrenheit: {
+        var unit = Plasmoid.configuration.temperatureUnit
+        if (unit === "fahrenheit") {
+            return true
+        }
+        if (unit === "celsius") {
+            return false
+        }
+        return Qt.locale().measurementSystem === Locale.ImperialUSSystem
+    }
+    readonly property string tempLabel: {
+        if (fanTemp < 0) {
+            return "N/A"
+        }
+        if (useFahrenheit) {
+            return Math.round(fanTemp * 9 / 5 + 32) + " °F"
+        }
+        return Math.round(fanTemp) + " °C"
+    }
 
     function parseState(text) {
         if (!text || text.trim().length === 0) {
@@ -221,11 +240,11 @@ PlasmoidItem {
             return "No state from the fan service"
         }
         var parts = ["Level " + effectiveLevel, modeLabel]
-        if (curveLabel.length > 0) {
+        if (!pinnedNow && curveLabel.length > 0) {
             parts.push(curveLabel)
         }
         if (fanTemp >= 0) {
-            parts.push(fanTemp + " C")
+            parts.push(tempLabel)
         }
         parts.push("Scroll to change, click for options")
         return parts.join(", ")
@@ -362,7 +381,7 @@ PlasmoidItem {
                         PlasmaComponents3.Label {
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignHCenter
-                            text: root.fanTemp >= 0 ? root.fanTemp + " C" : "N/A"
+                            text: root.tempLabel
                             font.bold: true
                             font.pixelSize: Math.round(Kirigami.Theme.defaultFont.pixelSize * 1.6)
                         }
@@ -386,13 +405,13 @@ PlasmoidItem {
                     Layout.fillWidth: true
                     text: "Power Save"
                     checkable: true
-                    checked: root.fanCurve === "power-save"
+                    checked: !root.pinnedNow && root.fanCurve === "power-save"
                     font.bold: checked
 
                     Rectangle {
                         anchors.fill: parent
                         radius: Kirigami.Units.smallSpacing
-                        color: "transparent"
+                        color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.3)
                         border.width: 2
                         border.color: Kirigami.Theme.highlightColor
                         visible: powerSaveButton.checked
@@ -409,13 +428,13 @@ PlasmoidItem {
                     Layout.fillWidth: true
                     text: "Balanced"
                     checkable: true
-                    checked: root.fanCurve === "auto"
+                    checked: !root.pinnedNow && root.fanCurve === "auto"
                     font.bold: checked
 
                     Rectangle {
                         anchors.fill: parent
                         radius: Kirigami.Units.smallSpacing
-                        color: "transparent"
+                        color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.3)
                         border.width: 2
                         border.color: Kirigami.Theme.highlightColor
                         visible: balancedButton.checked
@@ -432,13 +451,13 @@ PlasmoidItem {
                     Layout.fillWidth: true
                     text: "Aggressive"
                     checkable: true
-                    checked: root.fanCurve === "aggressive"
+                    checked: !root.pinnedNow && root.fanCurve === "aggressive"
                     font.bold: checked
 
                     Rectangle {
                         anchors.fill: parent
                         radius: Kirigami.Units.smallSpacing
-                        color: "transparent"
+                        color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.3)
                         border.width: 2
                         border.color: Kirigami.Theme.highlightColor
                         visible: aggressiveButton.checked
@@ -448,16 +467,6 @@ PlasmoidItem {
                         root.setCurve("aggressive")
                         root.expanded = false
                     }
-                }
-            }
-
-            PlasmaComponents3.Button {
-                Layout.fillWidth: true
-                text: "Follow curve"
-                visible: root.pinnedNow
-                onClicked: {
-                    root.clearPin()
-                    root.expanded = false
                 }
             }
 
@@ -488,7 +497,7 @@ PlasmoidItem {
                         Rectangle {
                             anchors.fill: parent
                             radius: Kirigami.Units.smallSpacing
-                            color: "transparent"
+                            color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.3)
                             border.width: 2
                             border.color: Kirigami.Theme.highlightColor
                             visible: levelButton.checked

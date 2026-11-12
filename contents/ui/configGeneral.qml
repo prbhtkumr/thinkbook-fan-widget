@@ -13,11 +13,13 @@ KCM.SimpleKCM {
     property string cfg_curveAc: "auto"
     property string cfg_curveDefault: "auto"
     property string cfg_curvePowerSave: "power-save"
+    property string cfg_temperatureUnit: "auto"
     property bool initialized: false
 
     onCfg_curveAcChanged: page.syncCombo(curveAcBox, cfg_curveAc)
     onCfg_curveDefaultChanged: page.syncCombo(curveDefaultBox, cfg_curveDefault)
     onCfg_curvePowerSaveChanged: page.syncCombo(curvePowerSaveBox, cfg_curvePowerSave)
+    onCfg_temperatureUnitChanged: page.syncCombo(temperatureUnitBox, cfg_temperatureUnit)
 
     function syncCombo(combo, value) {
         if (!combo) {
@@ -35,6 +37,7 @@ KCM.SimpleKCM {
         page.syncCombo(curveAcBox, cfg_curveAc)
         page.syncCombo(curveDefaultBox, cfg_curveDefault)
         page.syncCombo(curvePowerSaveBox, cfg_curvePowerSave)
+        page.syncCombo(temperatureUnitBox, cfg_temperatureUnit)
         page.initialized = true
     }
 
@@ -91,6 +94,22 @@ KCM.SimpleKCM {
             onCurrentIndexChanged: {
                 if (page.initialized && currentIndex >= 0 && currentIndex < model.length) {
                     cfg_curvePowerSave = model[currentIndex]["value"]
+                }
+            }
+        }
+
+        PlasmaComponents3.ComboBox {
+            id: temperatureUnitBox
+            Kirigami.FormData.label: "Temperature:"
+            textRole: "label"
+            model: [
+                { "label": "System locale", "value": "auto" },
+                { "label": "Celsius (°C)", "value": "celsius" },
+                { "label": "Fahrenheit (°F)", "value": "fahrenheit" }
+            ]
+            onCurrentIndexChanged: {
+                if (page.initialized && currentIndex >= 0 && currentIndex < model.length) {
+                    cfg_temperatureUnit = model[currentIndex]["value"]
                 }
             }
         }

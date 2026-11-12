@@ -37,9 +37,10 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 - Scroll up or down over the widget: change the fan level one step.
 - Pick 3 to 7: pin that level.
 - Pick a curve: follow that curve and remove any pin.
-- Pick Follow curve: remove the pin without changing the curve.
 
-The compact display shows `L<level>` and `AC`, `BAT`, `PWR`, or `PIN`. The tooltip shows the package temperature.
+When a level is pinned, the curve buttons lose their highlight. The pinned level is the only active control.
+
+The compact display shows `L<level>` and `AC`, `BAT`, `PWR`, or `PIN`. The tooltip shows the package temperature in the selected unit.
 
 ## Curves
 
@@ -62,6 +63,7 @@ The active curve is shown in the popup and tooltip. The popup curve buttons chan
 Right click the widget and choose Configure.
 
 - Minimum fan level: 3 to 7. This clamps manual pins and every curve.
+- Temperature: System locale, Celsius, or Fahrenheit. The default follows the system locale. A changed setting is saved.
 - On AC power: curve used while plugged in.
 - Default: curve used on battery.
 - On power save: curve used in power save.
