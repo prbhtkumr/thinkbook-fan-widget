@@ -45,6 +45,7 @@ The compact display shows `L<level>` and `AC`, `BAT`, or `PIN`. The tooltip show
 Right click the widget and choose Configure.
 
 - Minimum fan level: 3 to 7. This clamps both manual pins and the AC/battery curve.
+- Show icon: uncheck to hide the icon. Clearing the icon field also hides it.
 - Icon: a theme icon name such as `cpu`, or a path such as `../icons/fan.svg`. The default is the bundled fan icon.
 
 The widget writes the minimum level to `/run/thinkbook-fan/min-level`. The service reads it and keeps the fan at or above that level.

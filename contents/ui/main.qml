@@ -19,7 +19,11 @@ PlasmoidItem {
     property int actionSeq: 0
     property int configMinLevel: Plasmoid.configuration.minLevel || 3
     readonly property int minFanLevel: Math.max(3, Math.min(7, configMinLevel))
-    readonly property string iconSource: Plasmoid.configuration.iconSource || "../icons/fan.svg"
+    readonly property string iconSource: {
+        var source = Plasmoid.configuration.iconSource
+        return (source === undefined || source === null) ? "../icons/fan.svg" : source
+    }
+    readonly property bool showIcon: (Plasmoid.configuration.showIcon !== false) && iconSource.trim().length > 0
     readonly property var levelModel: {
         var levels = []
         for (var i = minFanLevel; i <= 7; i++) {
@@ -182,15 +186,16 @@ PlasmoidItem {
         GridLayout {
             id: content
             anchors.centerIn: parent
-            columns: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? 1 : 3
+            columns: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? 1 : (root.showIcon ? 3 : 2)
             columnSpacing: Kirigami.Units.smallSpacing
             rowSpacing: 0
 
             Loader {
-                Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                visible: root.showIcon
+                Layout.preferredWidth: root.showIcon ? Kirigami.Units.iconSizes.small : 0
+                Layout.preferredHeight: root.showIcon ? Kirigami.Units.iconSizes.small : 0
                 Layout.alignment: Qt.AlignHCenter
-                sourceComponent: root.iconSource.indexOf("/") >= 0 ? imageIcon : themeIcon
+                sourceComponent: root.showIcon ? (root.iconSource.indexOf("/") >= 0 ? imageIcon : themeIcon) : null
             }
 
             PlasmaComponents3.Label {
