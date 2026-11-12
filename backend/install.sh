@@ -14,7 +14,8 @@ install -Dm644 "$here/thinkpad_acpi.conf" /etc/modprobe.d/thinkpad_acpi.conf
 install -Dm644 "$here/thinkpad_acpi-load.conf" /etc/modules-load.d/thinkpad_acpi.conf
 
 systemctl daemon-reload
-systemctl enable --now thinkbook-fan-curve.service
+systemctl enable thinkbook-fan-curve.service
+systemctl restart thinkbook-fan-curve.service
 
 echo "Backend installed."
 echo "Check status: systemctl status thinkbook-fan-curve.service"

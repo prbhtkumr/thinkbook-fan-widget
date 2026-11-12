@@ -4,9 +4,10 @@ After=multi-user.target systemd-modules-load.service
 
 [Service]
 Type=simple
+TimeoutStopSec=10
 ExecStartPre=-/sbin/modprobe thinkpad_acpi
 ExecStart=/usr/bin/python3 /usr/local/sbin/thinkbook-fan-curve.py
-ExecStopPost=/bin/sh -c 'echo "level auto" > /proc/acpi/ibm/fan 2>/dev/null || true'
+ExecStopPost=/usr/bin/timeout 5 /bin/sh -c 'echo "level auto" > /proc/acpi/ibm/fan'
 Restart=on-failure
 RestartSec=10
 
