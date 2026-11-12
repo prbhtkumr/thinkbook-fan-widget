@@ -60,7 +60,7 @@ The active curve is shown in the popup and tooltip. The popup curve buttons chan
 
 ## Graph
 
-The Graph tab shows the last 5 minutes of the selected temperature input. The dim line is the raw reading. The highlighted line is the smoothed value used by the curve. The history resets when you change the input.
+The Graph tab shows the configured history window. The default is 60 seconds. The dim line is the raw reading. The highlighted line is the smoothed value used by the curve. The history resets when you change the input.
 
 ## Settings
 
@@ -69,6 +69,7 @@ Right click the widget and choose Configure. The settings are grouped into pages
 - Fan: minimum fan level, 3 to 7, and the temperature input source. The level clamps manual pins and every curve.
 - Curves: choose the preset for AC power, Default, and Power save.
 - Appearance: temperature unit, plus Show and Bold options for the title level, status, and temperature.
+- Graph: history duration in seconds. The default is 60.
 - Icon: show or hide the title icon, choose a preset, or enter a theme icon name or SVG path. Clearing the field hides the icon.
 
 The temperature input selects what the curve and graph use:
@@ -98,7 +99,7 @@ Balanced is stored as `auto` in this file.
 
 The service uses the selected temperature input, takes the median of the last three samples for curve decisions, and moves the fan one level per poll. A single short spike does not move the fan. The raw and smoothed values are reported in the state and used by the graph.
 
-The widget keeps 150 samples for the graph, about 5 minutes at the 2 second poll.
+The widget keeps samples for the configured graph duration. The default is 60 seconds.
 
 The service creates `/run/thinkbook-fan` as group writable for the `users` group. If your user is not in that group, change the group in `backend/thinkbook-fan-curve.py` or adjust the directory after the service starts.
 

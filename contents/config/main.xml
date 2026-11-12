@@ -10,6 +10,10 @@
             <label>Temperature source used by the curve and the graph.</label>
             <default>max-all</default>
         </entry>
+        <entry name="graphDuration" type="Int">
+            <label>Graph history duration in seconds.</label>
+            <default>60</default>
+        </entry>
         <entry name="temperatureUnit" type="String">
             <label>Temperature unit for the display.</label>
             <default>auto</default>

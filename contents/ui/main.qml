@@ -27,8 +27,16 @@ PlasmoidItem {
     property string configTemperatureInput: Plasmoid.configuration.temperatureInput || "max-all"
     property string fanInput: "max-all"
     property var tempHistory: []
-    property int historyLimit: 150
+    property int historyLimit: 1000
     property int lastHistoryUpdated: 0
+    property var graphCanvasItem: null
+    readonly property int graphDuration: Math.max(10, Math.min(900, Plasmoid.configuration.graphDuration || 60))
+    readonly property string graphWindowLabel: {
+        if (graphDuration >= 120 && graphDuration % 60 === 0) {
+            return (graphDuration / 60) + " min"
+        }
+        return graphDuration + " s"
+    }
     readonly property int minFanLevel: Math.max(3, Math.min(7, configMinLevel))
     readonly property string iconSource: {
         var source = Plasmoid.configuration.iconSource
@@ -167,13 +175,17 @@ PlasmoidItem {
                     lastHistoryUpdated = stamp
                     var controlTemp = (typeof state.control === "number") ? state.control : state.temp
                     var history = tempHistory.slice()
+                    var cutoff = stamp - graphDuration
+                    while (history.length > 0 && history[0].t < cutoff) {
+                        history.shift()
+                    }
                     history.push({ "t": stamp, "raw": state.temp, "control": controlTemp })
                     while (history.length > historyLimit) {
                         history.shift()
                     }
                     tempHistory = history
-                    if (graphCanvas) {
-                        graphCanvas.requestPaint()
+                    if (graphCanvasItem) {
+                        graphCanvasItem.requestPaint()
                     }
                 }
             }
@@ -235,8 +247,8 @@ PlasmoidItem {
     function resetHistory() {
         tempHistory = []
         lastHistoryUpdated = 0
-        if (graphCanvas) {
-            graphCanvas.requestPaint()
+        if (graphCanvasItem) {
+            graphCanvasItem.requestPaint()
         }
     }
 
@@ -277,6 +289,19 @@ PlasmoidItem {
     onConfigTemperatureInputChanged: {
         writeTemperatureInput()
         resetHistory()
+    }
+    onGraphDurationChanged: {
+        var cutoff = lastHistoryUpdated - graphDuration
+        var trimmed = []
+        for (var i = 0; i < tempHistory.length; ++i) {
+            if (tempHistory[i].t >= cutoff) {
+                trimmed.push(tempHistory[i])
+            }
+        }
+        tempHistory = trimmed
+        if (graphCanvasItem) {
+            graphCanvasItem.requestPaint()
+        }
     }
 
     P5Support.DataSource {
@@ -424,8 +449,8 @@ PlasmoidItem {
                 }
 
                 onCurrentIndexChanged: {
-                    if (currentIndex === 1 && graphCanvas) {
-                        graphCanvas.requestPaint()
+                    if (currentIndex === 1 && root.graphCanvasItem) {
+                        root.graphCanvasItem.requestPaint()
                     }
                 }
             }
@@ -663,7 +688,7 @@ PlasmoidItem {
                     }
 
                     PlasmaComponents3.Label {
-                        text: root.inputLabel + ", last 5 min"
+                        text: root.inputLabel + ", last " + root.graphWindowLabel
                         font: Kirigami.Theme.smallFont
                         opacity: 0.7
                     }
@@ -671,6 +696,12 @@ PlasmoidItem {
                     Canvas {
                         id: graphCanvas
                         Layout.fillWidth: true
+                        Component.onCompleted: root.graphCanvasItem = graphCanvas
+                        Component.onDestruction: {
+                            if (root.graphCanvasItem === graphCanvas) {
+                                root.graphCanvasItem = null
+                            }
+                        }
                         Layout.preferredHeight: Kirigami.Units.gridUnit * 7
                         onWidthChanged: requestPaint()
                         onHeightChanged: requestPaint()
@@ -712,8 +743,10 @@ PlasmoidItem {
                             var yFor = function(c) {
                                 return h - ((c - minC) / (maxC - minC)) * h;
                             };
-                            var xFor = function(index) {
-                                return (index / Math.max(1, root.historyLimit - 1)) * w;
+                            var newest = data[data.length - 1].t;
+                            var oldest = newest - root.graphDuration;
+                            var xFor = function(t) {
+                                return ((t - oldest) / root.graphDuration) * w;
                             };
 
                             ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.35);
@@ -722,9 +755,9 @@ PlasmoidItem {
                             for (var i = 0; i < data.length; ++i) {
                                 var ry = yFor(data[i].raw);
                                 if (i === 0) {
-                                    ctx.moveTo(xFor(i), ry);
+                                    ctx.moveTo(xFor(data[i].t), ry);
                                 } else {
-                                    ctx.lineTo(xFor(i), ry);
+                                    ctx.lineTo(xFor(data[i].t), ry);
                                 }
                             }
                             ctx.stroke();
@@ -735,9 +768,9 @@ PlasmoidItem {
                             for (var j = 0; j < data.length; ++j) {
                                 var cy = yFor(data[j].control);
                                 if (j === 0) {
-                                    ctx.moveTo(xFor(j), cy);
+                                    ctx.moveTo(xFor(data[j].t), cy);
                                 } else {
-                                    ctx.lineTo(xFor(j), cy);
+                                    ctx.lineTo(xFor(data[j].t), cy);
                                 }
                             }
                             ctx.stroke();

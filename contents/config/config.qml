@@ -18,6 +18,11 @@ ConfigModel {
         source: "configAppearance.qml"
     }
     ConfigCategory {
+        name: "Graph"
+        icon: "view-statistics"
+        source: "configGraph.qml"
+    }
+    ConfigCategory {
         name: "Icon"
         icon: "preferences-desktop-icons"
         source: "configIcon.qml"
