@@ -408,13 +408,16 @@ PlasmoidItem {
 
     fullRepresentation: Item {
         Layout.preferredWidth: Kirigami.Units.gridUnit * 18
+        Layout.minimumWidth: Kirigami.Units.gridUnit * 18
         Layout.preferredHeight: outer.implicitHeight + Kirigami.Units.largeSpacing * 2
+        Layout.minimumHeight: outer.implicitHeight + Kirigami.Units.largeSpacing * 2
 
         ColumnLayout {
             id: outer
             anchors.fill: parent
             anchors.margins: Kirigami.Units.largeSpacing
             spacing: Kirigami.Units.smallSpacing
+            clip: true
 
             QQC2.SwipeView {
                 id: swipeView
@@ -422,6 +425,13 @@ PlasmoidItem {
                 Layout.preferredHeight: Math.max(controlPage.implicitHeight, graphPage.implicitHeight)
                 currentIndex: 0
                 interactive: true
+                clip: true
+
+                Component.onCompleted: {
+                    if (contentItem) {
+                        contentItem.clip = true
+                    }
+                }
 
                 onCurrentIndexChanged: {
                     if (currentIndex === 1 && root.graphCanvasItem) {
@@ -442,6 +452,8 @@ PlasmoidItem {
 
                 ColumnLayout {
                     id: controlPage
+                    width: swipeView.width
+                    height: swipeView.height
                     spacing: Kirigami.Units.smallSpacing
 
                     Rectangle {
@@ -652,6 +664,8 @@ PlasmoidItem {
 
                 ColumnLayout {
                     id: graphPage
+                    width: swipeView.width
+                    height: swipeView.height
                     spacing: Kirigami.Units.smallSpacing
 
                     Canvas {
