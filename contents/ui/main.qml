@@ -41,6 +41,7 @@ PlasmoidItem {
     readonly property bool showGaugeNumber: Plasmoid.configuration.showGaugeNumber !== false
     readonly property bool showGaugeTemp: Plasmoid.configuration.showGaugeTemp !== false
     readonly property bool showGauge: (Plasmoid.configuration.showGauge !== false) && (showGaugeLevel || showGaugeNumber || showGaugeTemp)
+    readonly property string gaugeShape: Plasmoid.configuration.gaugeShape === "arc" ? "arc" : "full"
     readonly property bool showLevel: Plasmoid.configuration.showLevel === true
     readonly property bool showStatus: Plasmoid.configuration.showStatus !== false
     readonly property bool showTemperature: Plasmoid.configuration.showTemperature !== false
@@ -398,8 +399,8 @@ PlasmoidItem {
                 readonly property real ringWidth: partCount >= 3 ? 1.8 : partCount === 2 ? 2.4 : 3.2
                 readonly property real ringGap: partCount >= 3 ? 3.5 : partCount === 2 ? 4.0 : 2.4
                 readonly property int numberSize: Math.max(8, Math.round(gaugeSize * (partCount >= 3 ? 0.36 : partCount === 2 ? 0.46 : 0.58)))
-                readonly property real startAngle: Math.PI * 0.75
-                readonly property real sweepAngle: Math.PI * 1.5
+                readonly property real startAngle: root.gaugeShape === "arc" ? Math.PI * 0.75 : Math.PI / 2
+                readonly property real sweepAngle: root.gaugeShape === "arc" ? Math.PI * 1.5 : Math.PI * 2
                 property real shownLevel: root.effectiveLevel >= 0 ? root.effectiveLevel : root.minFanLevel
                 property real shownTemp: root.fanTemp >= 0 ? root.fanTemp : 30
 
@@ -459,7 +460,7 @@ PlasmoidItem {
                         };
 
                         if (drawTemp) {
-                            ctx.lineCap = "round";
+                            ctx.lineCap = levelGauge.sweepAngle < Math.PI * 2 ? "round" : "butt";
                             ctx.lineWidth = ringWidth;
                             ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.25);
                             ctx.beginPath();

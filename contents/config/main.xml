@@ -38,6 +38,10 @@
             <label>Show the level gauge in the compact display.</label>
             <default>true</default>
         </entry>
+        <entry name="gaugeShape" type="String">
+            <label>Shape of the level gauge.</label>
+            <default>full</default>
+        </entry>
         <entry name="showGaugeLevel" type="Bool">
             <label>Show the level lines in the gauge.</label>
             <default>true</default>

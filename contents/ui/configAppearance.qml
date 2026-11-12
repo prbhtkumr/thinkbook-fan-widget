@@ -19,9 +19,11 @@ KCM.SimpleKCM {
     property alias cfg_showTemperature: showTemperatureCheck.checked
     property alias cfg_boldTemperature: boldTemperatureCheck.checked
     property string cfg_temperatureUnit: "auto"
+    property string cfg_gaugeShape: "full"
     property bool initialized: false
 
     onCfg_temperatureUnitChanged: page.syncCombo(temperatureUnitBox, cfg_temperatureUnit)
+    onCfg_gaugeShapeChanged: page.syncCombo(gaugeShapeBox, cfg_gaugeShape)
 
     function syncCombo(combo, value) {
         if (!combo) {
@@ -37,6 +39,7 @@ KCM.SimpleKCM {
 
     Component.onCompleted: {
         page.syncCombo(temperatureUnitBox, cfg_temperatureUnit)
+        page.syncCombo(gaugeShapeBox, cfg_gaugeShape)
         page.initialized = true
     }
 
@@ -75,6 +78,22 @@ KCM.SimpleKCM {
             QQC2.CheckBox {
                 id: boldGaugeCheck
                 text: "Bold"
+            }
+        }
+
+        QQC2.ComboBox {
+            id: gaugeShapeBox
+            Layout.fillWidth: true
+            Kirigami.FormData.label: "Gauge shape:"
+            textRole: "label"
+            model: [
+                { "label": "Full circle", "value": "full" },
+                { "label": "Arc", "value": "arc" }
+            ]
+            onCurrentIndexChanged: {
+                if (page.initialized && currentIndex >= 0 && currentIndex < model.length) {
+                    cfg_gaugeShape = model[currentIndex]["value"]
+                }
             }
         }
 
