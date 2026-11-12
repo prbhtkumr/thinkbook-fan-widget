@@ -627,6 +627,8 @@ PlasmoidItem {
 
                     ColumnLayout {
                         Layout.fillWidth: true
+                        Layout.preferredWidth: 0
+                        Layout.minimumWidth: 0
                         spacing: 0
 
                         PlasmaComponents3.Label {
@@ -647,6 +649,8 @@ PlasmoidItem {
 
                     ColumnLayout {
                         Layout.fillWidth: true
+                        Layout.preferredWidth: 0
+                        Layout.minimumWidth: 0
                         spacing: 0
 
                         PlasmaComponents3.Label {
@@ -667,6 +671,8 @@ PlasmoidItem {
 
                     ColumnLayout {
                         Layout.fillWidth: true
+                        Layout.preferredWidth: 0
+                        Layout.minimumWidth: 0
                         spacing: 0
 
                         PlasmaComponents3.Label {
