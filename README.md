@@ -64,7 +64,7 @@ Right click the widget and choose Configure. The settings are grouped into pages
 
 - Fan: minimum fan level, 3 to 7. This clamps manual pins and every curve.
 - Curves: choose the preset for AC power, Default, and Power save.
-- Appearance: temperature unit, which title items appear, and whether status and temperature text are bold.
+- Appearance: temperature unit, plus Show and Bold options for the title level, status, and temperature.
 - Icon: show or hide the title icon, choose a preset, or enter a theme icon name or SVG path. Clearing the field hides the icon.
 
 The temperature unit defaults to the system locale. A changed unit is saved.

@@ -8,9 +8,10 @@ KCM.SimpleKCM {
     id: page
 
     property alias cfg_showLevel: showLevelCheck.checked
+    property alias cfg_boldLevel: boldLevelCheck.checked
     property alias cfg_showStatus: showStatusCheck.checked
-    property alias cfg_showTemperature: showTemperatureCheck.checked
     property alias cfg_boldStatus: boldStatusCheck.checked
+    property alias cfg_showTemperature: showTemperatureCheck.checked
     property alias cfg_boldTemperature: boldTemperatureCheck.checked
     property string cfg_temperatureUnit: "auto"
     property bool initialized: false
@@ -57,34 +58,49 @@ KCM.SimpleKCM {
             text: "Title items"
         }
 
-        QQC2.CheckBox {
-            id: showLevelCheck
+        RowLayout {
             Kirigami.FormData.label: "Level:"
-            text: "Show"
+            spacing: Kirigami.Units.largeSpacing
+
+            QQC2.CheckBox {
+                id: showLevelCheck
+                text: "Show"
+            }
+
+            QQC2.CheckBox {
+                id: boldLevelCheck
+                text: "Bold"
+            }
         }
 
-        QQC2.CheckBox {
-            id: showStatusCheck
+        RowLayout {
             Kirigami.FormData.label: "Status:"
-            text: "Show"
+            spacing: Kirigami.Units.largeSpacing
+
+            QQC2.CheckBox {
+                id: showStatusCheck
+                text: "Show"
+            }
+
+            QQC2.CheckBox {
+                id: boldStatusCheck
+                text: "Bold"
+            }
         }
 
-        QQC2.CheckBox {
-            id: showTemperatureCheck
+        RowLayout {
             Kirigami.FormData.label: "Temperature:"
-            text: "Show"
-        }
+            spacing: Kirigami.Units.largeSpacing
 
-        QQC2.CheckBox {
-            id: boldStatusCheck
-            Kirigami.FormData.label: "Status text:"
-            text: "Bold"
-        }
+            QQC2.CheckBox {
+                id: showTemperatureCheck
+                text: "Show"
+            }
 
-        QQC2.CheckBox {
-            id: boldTemperatureCheck
-            Kirigami.FormData.label: "Temperature text:"
-            text: "Bold"
+            QQC2.CheckBox {
+                id: boldTemperatureCheck
+                text: "Bold"
+            }
         }
     }
 }

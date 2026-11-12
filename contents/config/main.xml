@@ -46,6 +46,10 @@
             <label>Show the temperature in bold in the compact display.</label>
             <default>false</default>
         </entry>
+        <entry name="boldLevel" type="Bool">
+            <label>Show the level in bold in the compact display.</label>
+            <default>true</default>
+        </entry>
         <entry name="iconSource" type="String">
             <label>Icon name or path for the compact display.</label>
             <default>../icons/fan.svg</default>

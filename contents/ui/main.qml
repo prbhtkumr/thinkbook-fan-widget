@@ -34,6 +34,7 @@ PlasmoidItem {
     readonly property bool showTemperature: Plasmoid.configuration.showTemperature !== false
     readonly property bool boldStatus: Plasmoid.configuration.boldStatus === true
     readonly property bool boldTemperature: Plasmoid.configuration.boldTemperature === true
+    readonly property bool boldLevel: Plasmoid.configuration.boldLevel !== false
     readonly property int compactColumns: {
         var count = 0
         if (showIcon) {
@@ -299,7 +300,7 @@ PlasmoidItem {
             PlasmaComponents3.Label {
                 visible: root.showLevel
                 text: root.levelLabel
-                font.bold: true
+                font.bold: root.boldLevel
                 Layout.alignment: Qt.AlignHCenter
             }
 
