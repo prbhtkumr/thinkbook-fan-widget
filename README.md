@@ -40,19 +40,48 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 
 The compact display shows `L<level>` and `AC`, `BAT`, or `PIN`. The tooltip shows the package temperature.
 
+## Curves
+
+Three presets are available:
+
+- Auto: balanced response
+- Power Save: quieter, with higher temperature thresholds
+- Aggressive: earlier ramp and higher levels
+
+In Settings, choose which preset applies to each power state:
+
+- On AC power
+- Default, meaning on battery
+- On power save, meaning the platform profile is low-power or the battery is at or below 20 percent
+
+The active curve is shown in the popup and tooltip. The compact display shows `AC`, `BAT`, or `PWR`.
+
 ## Settings
 
 Right click the widget and choose Configure.
 
-- Minimum fan level: 3 to 7. This clamps both manual pins and the AC/battery curve.
+- Minimum fan level: 3 to 7. This clamps manual pins and every curve.
+- On AC power: curve used while plugged in.
+- Default: curve used on battery.
+- On power save: curve used in power save.
 - Show icon: uncheck to hide the icon. Clearing the icon field also hides it.
 - Icon: a theme icon name such as `cpu`, or a path such as `../icons/fan.svg`. The default is the bundled fan icon.
 
-The widget writes the minimum level to `/run/thinkbook-fan/min-level`. The service reads it and keeps the fan at or above that level.
+The widget writes the minimum level to `/run/thinkbook-fan/min-level` and the curve selection to `/run/thinkbook-fan/curves`. The service reads both within 2 seconds.
 
 ## How it works
 
 The service writes `/run/thinkbook-fan/state` every 2 seconds. The widget reads that file with the Plasma executable data engine. Changing the level writes `/run/thinkbook-fan/pin`. The service reads the pin file and writes the level to `/proc/acpi/ibm/fan`.
+
+The curve file contains one line per power state:
+
+```text
+ac=auto
+default=auto
+power-save=power-save
+```
+
+The service uses the median of the last three temperature samples for curve decisions and moves the fan one level per poll. A single short spike does not move the fan. The raw temperature is still reported in the state and shown in the widget.
 
 The service creates `/run/thinkbook-fan` as group writable for the `users` group. If your user is not in that group, change the group in `backend/thinkbook-fan-curve.py` or adjust the directory after the service starts.
 

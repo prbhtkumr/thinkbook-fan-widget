@@ -6,6 +6,18 @@
             <label>Lowest fan level the widget will use.</label>
             <default>3</default>
         </entry>
+        <entry name="curveAc" type="String">
+            <label>Curve on AC power.</label>
+            <default>auto</default>
+        </entry>
+        <entry name="curveDefault" type="String">
+            <label>Curve on battery.</label>
+            <default>auto</default>
+        </entry>
+        <entry name="curvePowerSave" type="String">
+            <label>Curve in power save.</label>
+            <default>power-save</default>
+        </entry>
         <entry name="showIcon" type="Bool">
             <label>Show the compact icon.</label>
             <default>true</default>

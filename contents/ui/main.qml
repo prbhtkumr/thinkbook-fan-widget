@@ -11,6 +11,7 @@ PlasmoidItem {
 
     property int fanLevel: -1
     property string fanMode: "off"
+    property string fanCurve: ""
     property int fanTemp: -1
     property int pinnedLevel: -1
     property int pendingLevel: -1
@@ -18,6 +19,9 @@ PlasmoidItem {
     property string lastError: ""
     property int actionSeq: 0
     property int configMinLevel: Plasmoid.configuration.minLevel || 3
+    property string configCurveAc: Plasmoid.configuration.curveAc || "auto"
+    property string configCurveDefault: Plasmoid.configuration.curveDefault || "auto"
+    property string configCurvePowerSave: Plasmoid.configuration.curvePowerSave || "power-save"
     readonly property int minFanLevel: Math.max(3, Math.min(7, configMinLevel))
     readonly property string iconSource: {
         var source = Plasmoid.configuration.iconSource
@@ -44,8 +48,11 @@ PlasmoidItem {
         if (fanMode === "ac") {
             return "AC"
         }
-        if (fanMode === "battery") {
+        if (fanMode === "default" || fanMode === "battery") {
             return "BAT"
+        }
+        if (fanMode === "power-save") {
+            return "PWR"
         }
         if (fanMode === "off") {
             return "OFF"
@@ -53,10 +60,24 @@ PlasmoidItem {
         return fanMode.toUpperCase()
     }
 
+    readonly property string curveLabel: {
+        if (fanCurve === "auto") {
+            return "Auto"
+        }
+        if (fanCurve === "power-save") {
+            return "Power Save"
+        }
+        if (fanCurve === "aggressive") {
+            return "Aggressive"
+        }
+        return ""
+    }
+
     function parseState(text) {
         if (!text || text.trim().length === 0) {
             fanLevel = -1
             fanMode = "off"
+            fanCurve = ""
             fanTemp = -1
             pinnedLevel = -1
             pendingLevel = -1
@@ -68,6 +89,7 @@ PlasmoidItem {
             var state = JSON.parse(text)
             fanLevel = (typeof state.level === "number") ? state.level : -1
             fanMode = state.mode || "off"
+            fanCurve = state.curve || ""
             fanTemp = (typeof state.temp === "number") ? state.temp : -1
             pinnedLevel = (typeof state.pin === "number") ? state.pin : -1
 
@@ -120,8 +142,28 @@ PlasmoidItem {
         runCommand("sh -c 'printf \"%s\" " + minFanLevel + " > /run/thinkbook-fan/min-level'")
     }
 
-    Component.onCompleted: Qt.callLater(root.writeMinLevel)
+    function validCurve(name) {
+        if (name === "power-save" || name === "aggressive") {
+            return name
+        }
+        return "auto"
+    }
+
+    function writeCurveConfig() {
+        var ac = validCurve(configCurveAc)
+        var def = validCurve(configCurveDefault)
+        var ps = validCurve(configCurvePowerSave)
+        runCommand("sh -c 'printf \"ac=%s\\ndefault=%s\\npower-save=%s\\n\" \"" + ac + "\" \"" + def + "\" \"" + ps + "\" > /run/thinkbook-fan/curves'")
+    }
+
+    Component.onCompleted: {
+        Qt.callLater(root.writeMinLevel)
+        Qt.callLater(root.writeCurveConfig)
+    }
     onConfigMinLevelChanged: writeMinLevel()
+    onConfigCurveAcChanged: writeCurveConfig()
+    onConfigCurveDefaultChanged: writeCurveConfig()
+    onConfigCurvePowerSaveChanged: writeCurveConfig()
 
     P5Support.DataSource {
         id: stateSource
@@ -166,6 +208,9 @@ PlasmoidItem {
             return "No state from the fan service"
         }
         var parts = ["Level " + effectiveLevel, modeLabel]
+        if (curveLabel.length > 0) {
+            parts.push(curveLabel)
+        }
         if (fanTemp >= 0) {
             parts.push(fanTemp + " C")
         }
@@ -229,7 +274,7 @@ PlasmoidItem {
     }
 
     fullRepresentation: Item {
-        Layout.preferredWidth: Kirigami.Units.gridUnit * 14
+        Layout.preferredWidth: Kirigami.Units.gridUnit * 16
         Layout.preferredHeight: column.implicitHeight + Kirigami.Units.largeSpacing * 2
 
         ColumnLayout {
@@ -253,6 +298,13 @@ PlasmoidItem {
 
                 PlasmaComponents3.Label {
                     text: root.modeLabel
+                }
+
+                PlasmaComponents3.Label {
+                    text: root.curveLabel
+                    font: Kirigami.Theme.smallFont
+                    opacity: 0.8
+                    visible: text.length > 0
                 }
 
                 PlasmaComponents3.Label {
