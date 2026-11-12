@@ -1,8 +1,8 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
-import org.kde.plasma.components as PlasmaComponents3
 
 KCM.SimpleKCM {
     id: page
@@ -36,8 +36,9 @@ KCM.SimpleKCM {
     }
 
     Kirigami.FormLayout {
-        PlasmaComponents3.ComboBox {
+        QQC2.ComboBox {
             id: curveAcBox
+            Layout.fillWidth: true
             Kirigami.FormData.label: "On AC power:"
             textRole: "label"
             model: [
@@ -52,8 +53,9 @@ KCM.SimpleKCM {
             }
         }
 
-        PlasmaComponents3.ComboBox {
+        QQC2.ComboBox {
             id: curveDefaultBox
+            Layout.fillWidth: true
             Kirigami.FormData.label: "Default:"
             textRole: "label"
             model: [
@@ -68,8 +70,9 @@ KCM.SimpleKCM {
             }
         }
 
-        PlasmaComponents3.ComboBox {
+        QQC2.ComboBox {
             id: curvePowerSaveBox
+            Layout.fillWidth: true
             Kirigami.FormData.label: "On power save:"
             textRole: "label"
             model: [

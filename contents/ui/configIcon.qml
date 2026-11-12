@@ -1,22 +1,23 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
-import org.kde.plasma.components as PlasmaComponents3
 
 KCM.SimpleKCM {
     property alias cfg_showIcon: showIconCheck.checked
     property alias cfg_iconSource: iconField.text
 
     Kirigami.FormLayout {
-        PlasmaComponents3.CheckBox {
+        QQC2.CheckBox {
             id: showIconCheck
             Kirigami.FormData.label: "Visibility:"
             text: "Show icon"
         }
 
-        PlasmaComponents3.ComboBox {
+        QQC2.ComboBox {
             id: iconPreset
+            Layout.fillWidth: true
             Kirigami.FormData.label: "Preset:"
             textRole: "label"
             model: [
@@ -31,17 +32,19 @@ KCM.SimpleKCM {
             }
         }
 
-        PlasmaComponents3.TextField {
+        QQC2.TextField {
             id: iconField
+            Layout.fillWidth: true
             Kirigami.FormData.label: "Source:"
             placeholderText: "cpu or ../icons/fan.svg"
         }
 
-        PlasmaComponents3.Label {
+        QQC2.Label {
+            Layout.fillWidth: true
             text: "Use a theme icon name or a path to an SVG file. Clear the field or uncheck Show icon to hide it."
             font: Kirigami.Theme.smallFont
             opacity: 0.8
-            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
         }
     }
 }

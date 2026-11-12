@@ -1,8 +1,8 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
-import org.kde.plasma.components as PlasmaComponents3
 
 KCM.SimpleKCM {
     id: page
@@ -35,8 +35,9 @@ KCM.SimpleKCM {
     }
 
     Kirigami.FormLayout {
-        PlasmaComponents3.ComboBox {
+        QQC2.ComboBox {
             id: temperatureUnitBox
+            Layout.fillWidth: true
             Kirigami.FormData.label: "Temperature:"
             textRole: "label"
             model: [
@@ -51,36 +52,36 @@ KCM.SimpleKCM {
             }
         }
 
-        PlasmaComponents3.Label {
+        QQC2.Label {
             Kirigami.FormData.isSection: true
             text: "Title items"
         }
 
-        PlasmaComponents3.CheckBox {
+        QQC2.CheckBox {
             id: showLevelCheck
             Kirigami.FormData.label: "Level:"
             text: "Show"
         }
 
-        PlasmaComponents3.CheckBox {
+        QQC2.CheckBox {
             id: showStatusCheck
             Kirigami.FormData.label: "Status:"
             text: "Show"
         }
 
-        PlasmaComponents3.CheckBox {
+        QQC2.CheckBox {
             id: showTemperatureCheck
             Kirigami.FormData.label: "Temperature:"
             text: "Show"
         }
 
-        PlasmaComponents3.CheckBox {
+        QQC2.CheckBox {
             id: boldStatusCheck
             Kirigami.FormData.label: "Status text:"
             text: "Bold"
         }
 
-        PlasmaComponents3.CheckBox {
+        QQC2.CheckBox {
             id: boldTemperatureCheck
             Kirigami.FormData.label: "Temperature text:"
             text: "Bold"
