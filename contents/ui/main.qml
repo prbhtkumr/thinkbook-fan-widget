@@ -431,6 +431,7 @@ PlasmoidItem {
                 clip: true
 
                 readonly property int pageCount: 2
+                readonly property int pageGap: Kirigami.Units.largeSpacing
                 readonly property int currentIndex: Math.max(0, Math.min(pageCount - 1, Math.round(position)))
                 property real position: 0
                 property real dragStart: 0
@@ -449,13 +450,13 @@ PlasmoidItem {
                     id: controlPage
                     width: pager.width
                     height: pager.height
-                    x: -pager.position * pager.width
+                    x: -pager.position * (pager.width + pager.pageGap)
                     spacing: Kirigami.Units.smallSpacing
 
                     Behavior on x {
                         enabled: !pagerDrag.active
                         NumberAnimation {
-                            duration: Kirigami.Units.shortDuration * 2
+                            duration: Kirigami.Units.shortDuration
                             easing.type: Easing.OutCubic
                         }
                     }
@@ -678,13 +679,13 @@ PlasmoidItem {
                     id: graphPage
                     width: pager.width
                     height: pager.height
-                    x: (1 - pager.position) * pager.width
+                    x: (1 - pager.position) * (pager.width + pager.pageGap)
                     spacing: Kirigami.Units.smallSpacing
 
                     Behavior on x {
                         enabled: !pagerDrag.active
                         NumberAnimation {
-                            duration: Kirigami.Units.shortDuration * 2
+                            duration: Kirigami.Units.shortDuration
                             easing.type: Easing.OutCubic
                         }
                     }
@@ -926,8 +927,16 @@ PlasmoidItem {
                             return
                         }
                         var next = pager.dragStart - translation.x / pager.width
-                        pager.position = Math.max(-0.04, Math.min(pager.pageCount - 1 + 0.04, next))
+                        pager.position = Math.max(0, Math.min(pager.pageCount - 1, next))
                     }
+                }
+
+                Timer {
+                    id: settleTimer
+                    interval: 260
+                    repeat: false
+                    running: !pagerDrag.active && Math.abs(pager.position - Math.round(pager.position)) > 0.001
+                    onTriggered: pager.goTo(Math.round(pager.position))
                 }
 
                 WheelHandler {
