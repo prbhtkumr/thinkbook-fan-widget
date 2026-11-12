@@ -47,12 +47,22 @@ KCM.SimpleKCM {
     }
 
     Kirigami.FormLayout {
+        PlasmaComponents3.Label {
+            Kirigami.FormData.isSection: true
+            text: "Fan"
+        }
+
         PlasmaComponents3.SpinBox {
             id: levelSpin
             Kirigami.FormData.label: "Minimum fan level:"
             from: 3
             to: 7
             stepSize: 1
+        }
+
+        PlasmaComponents3.Label {
+            Kirigami.FormData.isSection: true
+            text: "Curves"
         }
 
         PlasmaComponents3.ComboBox {
@@ -101,6 +111,11 @@ KCM.SimpleKCM {
                     cfg_curvePowerSave = model[currentIndex]["value"]
                 }
             }
+        }
+
+        PlasmaComponents3.Label {
+            Kirigami.FormData.isSection: true
+            text: "Display"
         }
 
         PlasmaComponents3.ComboBox {
