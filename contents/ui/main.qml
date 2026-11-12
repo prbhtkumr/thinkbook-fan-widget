@@ -25,18 +25,11 @@ PlasmoidItem {
     property string configCurveDefault: Plasmoid.configuration.curveDefault || "auto"
     property string configCurvePowerSave: Plasmoid.configuration.curvePowerSave || "power-save"
     property string configTemperatureInput: Plasmoid.configuration.temperatureInput || "max-all"
-    property string fanInput: "max-all"
     property var tempHistory: []
     property int historyLimit: 1000
     property int lastHistoryUpdated: 0
     property var graphCanvasItem: null
     readonly property int graphDuration: Math.max(10, Math.min(900, Plasmoid.configuration.graphDuration || 60))
-    readonly property string graphWindowLabel: {
-        if (graphDuration >= 120 && graphDuration % 60 === 0) {
-            return (graphDuration / 60) + " min"
-        }
-        return graphDuration + " s"
-    }
     readonly property int minFanLevel: Math.max(3, Math.min(7, configMinLevel))
     readonly property string iconSource: {
         var source = Plasmoid.configuration.iconSource
@@ -125,18 +118,6 @@ PlasmoidItem {
         return Math.round(celsius) + " °C"
     }
     readonly property string tempLabel: fanTemp < 0 ? "N/A" : tempUnitLabel(fanTemp)
-    readonly property string inputLabel: {
-        if (fanInput === "max-core") {
-            return "Maximum core"
-        }
-        if (fanInput === "avg-core") {
-            return "Average core"
-        }
-        if (fanInput === "package") {
-            return "Package"
-        }
-        return "Maximum of all sensors"
-    }
 
     function parseState(text) {
         if (!text || text.trim().length === 0) {
@@ -144,7 +125,6 @@ PlasmoidItem {
             fanMode = "off"
             fanCurve = ""
             fanState = "default"
-            fanInput = validInput(configTemperatureInput)
             fanTemp = -1
             pinnedLevel = -1
             pendingLevel = -1
@@ -158,7 +138,6 @@ PlasmoidItem {
             fanMode = state.mode || "off"
             fanCurve = state.curve || ""
             fanState = state.state || (state.mode === "power-save" ? "power-save" : (state.ac ? "ac" : "default"))
-            fanInput = state.input || validInput(configTemperatureInput)
             fanTemp = (typeof state.temp === "number") ? state.temp : -1
             pinnedLevel = (typeof state.pin === "number") ? state.pin : -1
 
@@ -436,31 +415,32 @@ PlasmoidItem {
             anchors.margins: Kirigami.Units.largeSpacing
             spacing: Kirigami.Units.smallSpacing
 
-            QQC2.TabBar {
-                id: tabBar
+            QQC2.SwipeView {
+                id: swipeView
                 Layout.fillWidth: true
-
-                QQC2.TabButton {
-                    text: "Control"
-                }
-
-                QQC2.TabButton {
-                    text: "Graph"
-                }
+                Layout.preferredHeight: Math.max(controlPage.implicitHeight, graphPage.implicitHeight)
+                currentIndex: 0
+                interactive: true
 
                 onCurrentIndexChanged: {
                     if (currentIndex === 1 && root.graphCanvasItem) {
                         root.graphCanvasItem.requestPaint()
                     }
                 }
-            }
 
-            StackLayout {
-                Layout.fillWidth: true
-                currentIndex: tabBar.currentIndex
+                WheelHandler {
+                    acceptedDevices: PointerDevice.Mouse
+                    onWheel: (wheel) => {
+                        if (wheel.angleDelta.x > 0 || wheel.angleDelta.y < 0) {
+                            swipeView.currentIndex = Math.min(swipeView.count - 1, swipeView.currentIndex + 1)
+                        } else if (wheel.angleDelta.x < 0 || wheel.angleDelta.y > 0) {
+                            swipeView.currentIndex = Math.max(0, swipeView.currentIndex - 1)
+                        }
+                    }
+                }
 
                 ColumnLayout {
-                    Layout.fillWidth: true
+                    id: controlPage
                     spacing: Kirigami.Units.smallSpacing
 
                     Rectangle {
@@ -670,32 +650,13 @@ PlasmoidItem {
                 }
 
                 ColumnLayout {
-                    Layout.fillWidth: true
+                    id: graphPage
                     spacing: Kirigami.Units.smallSpacing
-
-                    RowLayout {
-                        Layout.fillWidth: true
-
-                        PlasmaComponents3.Label {
-                            text: "Temperature history"
-                            font.bold: true
-                            Layout.fillWidth: true
-                        }
-
-                        PlasmaComponents3.Label {
-                            text: root.tempLabel
-                        }
-                    }
-
-                    PlasmaComponents3.Label {
-                        text: root.inputLabel + ", last " + root.graphWindowLabel
-                        font: Kirigami.Theme.smallFont
-                        opacity: 0.7
-                    }
 
                     Canvas {
                         id: graphCanvas
                         Layout.fillWidth: true
+                        Layout.fillHeight: true
                         Component.onCompleted: root.graphCanvasItem = graphCanvas
                         Component.onDestruction: {
                             if (root.graphCanvasItem === graphCanvas) {
@@ -820,6 +781,12 @@ PlasmoidItem {
                         }
                     }
                 }
+            }
+
+            QQC2.PageIndicator {
+                count: swipeView.count
+                currentIndex: swipeView.currentIndex
+                Layout.alignment: Qt.AlignHCenter
             }
         }
     }
