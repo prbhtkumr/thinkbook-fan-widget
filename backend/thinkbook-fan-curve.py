@@ -19,29 +19,27 @@ AC_ONLINE = "/sys/class/power_supply/ACAD/online"
 STATE_DIR = "/run/thinkbook-fan"
 PIN_FILE = os.path.join(STATE_DIR, "pin")
 STATE_FILE = os.path.join(STATE_DIR, "state")
+MIN_LEVEL_FILE = os.path.join(STATE_DIR, "min-level")
+MIN_LEVEL = 3
 POLL_SECONDS = 2
 REFRESH_SECONDS = 30
 HYSTERESIS_C = 3
 EMERGENCY_C = 90
 SAFETY_C = 95
 
-# (up_threshold_C, fan_level). Level 0 = off/min, 7 = max.
+# (up_threshold_C, fan_level). Level 3 is the lowest allowed, 7 is max.
 AC_CURVE = [
     (88, 7),
     (81, 6),
     (74, 5),
     (66, 4),
-    (59, 3),
-    (51, 2),
-    (0, 1),
+    (0, 3),
 ]
 BATTERY_CURVE = [
     (92, 7),
     (86, 5),
     (79, 4),
-    (71, 3),
-    (63, 2),
-    (0, 0),
+    (0, 3),
 ]
 
 
@@ -71,6 +69,13 @@ def read_override():
     except ValueError:
         return None
     return level
+
+
+def read_min_level():
+    value = read_int(MIN_LEVEL_FILE)
+    if value is None:
+        return MIN_LEVEL
+    return max(MIN_LEVEL, min(7, value))
 
 
 def read_temp_c():
@@ -221,19 +226,20 @@ def main():
         last_temp = temp
 
         ac = on_ac()
+        min_level = read_min_level()
         pinned = read_override()
         pin_active = pinned is not None and temp < SAFETY_C
         if pin_active:
-            want = pinned
+            want = max(min_level, pinned)
         else:
-            want = 7 if temp >= EMERGENCY_C else desired_level(temp, ac)
+            want = 7 if temp >= EMERGENCY_C else max(min_level, desired_level(temp, ac))
 
         if ac != last_ac:
             current = None
             last_ac = ac
 
         if pin_active:
-            target = pinned
+            target = max(min_level, pinned)
         elif current is None:
             target = want
         elif want > current:
@@ -244,7 +250,7 @@ def main():
                 target = current
             else:
                 # Step down one level at a time to avoid overshooting.
-                target = max(want, current - 1)
+                target = max(min_level, max(want, current - 1))
         else:
             target = current
 
@@ -269,7 +275,8 @@ def main():
                 pass
 
         mode = "pin" if pin_active else ("ac" if ac else "battery")
-        write_state(current, mode, temp, ac, pinned if pin_active else None)
+        effective_pin = max(min_level, pinned) if pin_active else None
+        write_state(current, mode, temp, ac, effective_pin)
         time.sleep(POLL_SECONDS)
 
     write_state(None, "off", last_temp, on_ac(), None)

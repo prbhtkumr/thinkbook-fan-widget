@@ -35,14 +35,23 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 
 - Left click: open the level menu.
 - Scroll up or down over the widget: change the fan level one step.
-- Pick 0 to 7: pin that level.
+- Pick 3 to 7: pin that level.
 - Pick Auto: remove the pin and let the AC/battery curve run.
 
 The compact display shows `L<level>` and `AC`, `BAT`, or `PIN`. The tooltip shows the package temperature.
 
+## Settings
+
+Right click the widget and choose Configure.
+
+- Minimum fan level: 3 to 7. This clamps both manual pins and the AC/battery curve.
+- Icon: a theme icon name such as `cpu`, or a path such as `../icons/fan.svg`. The default is the bundled fan icon.
+
+The widget writes the minimum level to `/run/thinkbook-fan/min-level`. The service reads it and keeps the fan at or above that level.
+
 ## How it works
 
-The service writes `/run/thinkbook-fan/state` every 5 seconds. The widget reads that file with the Plasma executable data engine. Changing the level writes `/run/thinkbook-fan/pin`. The service reads the pin file and writes the level to `/proc/acpi/ibm/fan`.
+The service writes `/run/thinkbook-fan/state` every 2 seconds. The widget reads that file with the Plasma executable data engine. Changing the level writes `/run/thinkbook-fan/pin`. The service reads the pin file and writes the level to `/proc/acpi/ibm/fan`.
 
 The service creates `/run/thinkbook-fan` as group writable for the `users` group. If your user is not in that group, change the group in `backend/thinkbook-fan-curve.py` or adjust the directory after the service starts.
 

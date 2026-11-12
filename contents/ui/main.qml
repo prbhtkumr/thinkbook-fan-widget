@@ -17,6 +17,16 @@ PlasmoidItem {
     property double pendingUntil: 0
     property string lastError: ""
     property int actionSeq: 0
+    property int configMinLevel: Plasmoid.configuration.minLevel || 3
+    readonly property int minFanLevel: Math.max(3, Math.min(7, configMinLevel))
+    readonly property string iconSource: Plasmoid.configuration.iconSource || "../icons/fan.svg"
+    readonly property var levelModel: {
+        var levels = []
+        for (var i = minFanLevel; i <= 7; i++) {
+            levels.push(i)
+        }
+        return levels
+    }
 
     readonly property string stateCommand: "cat /run/thinkbook-fan/state 2>/dev/null"
     readonly property string pinFile: "/run/thinkbook-fan/pin"
@@ -74,7 +84,7 @@ PlasmoidItem {
     }
 
     function setLevel(level) {
-        level = Math.max(0, Math.min(7, level))
+        level = Math.max(root.minFanLevel, Math.min(7, level))
         pendingLevel = level
         pendingUntil = Date.now() + 7000
         lastError = ""
@@ -101,6 +111,13 @@ PlasmoidItem {
         }
         setLevel(base + delta)
     }
+
+    function writeMinLevel() {
+        runCommand("sh -c 'printf \"%s\" " + minFanLevel + " > /run/thinkbook-fan/min-level'")
+    }
+
+    Component.onCompleted: Qt.callLater(root.writeMinLevel)
+    onConfigMinLevelChanged: writeMinLevel()
 
     P5Support.DataSource {
         id: stateSource
@@ -169,15 +186,11 @@ PlasmoidItem {
             columnSpacing: Kirigami.Units.smallSpacing
             rowSpacing: 0
 
-            Image {
-                source: "../icons/fan.svg"
-                sourceSize.width: Kirigami.Units.iconSizes.small
-                sourceSize.height: Kirigami.Units.iconSizes.small
+            Loader {
                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
                 Layout.alignment: Qt.AlignHCenter
-                fillMode: Image.PreserveAspectFit
-                smooth: true
+                sourceComponent: root.iconSource.indexOf("/") >= 0 ? imageIcon : themeIcon
             }
 
             PlasmaComponents3.Label {
@@ -244,21 +257,21 @@ PlasmoidItem {
 
             GridLayout {
                 Layout.fillWidth: true
-                columns: 4
+                columns: root.levelModel.length
                 columnSpacing: Kirigami.Units.smallSpacing
                 rowSpacing: Kirigami.Units.smallSpacing
 
                 Repeater {
-                    model: 8
+                    model: root.levelModel
 
                     PlasmaComponents3.Button {
                         id: levelButton
-                        required property int index
+                        required property int modelData
                         Layout.fillWidth: true
-                        text: index
-                        font.bold: root.effectiveLevel === index
+                        text: modelData
+                        font.bold: root.effectiveLevel === modelData
                         checkable: true
-                        checked: root.effectiveLevel === index
+                        checked: root.effectiveLevel === modelData
 
                         Rectangle {
                             anchors.fill: parent
@@ -270,7 +283,7 @@ PlasmoidItem {
                         }
 
                         onClicked: {
-                            root.setLevel(index)
+                            root.setLevel(modelData)
                             root.expanded = false
                         }
                     }
@@ -308,6 +321,26 @@ PlasmoidItem {
                 color: Kirigami.Theme.negativeTextColor
                 font: Kirigami.Theme.smallFont
             }
+        }
+    }
+
+    Component {
+        id: imageIcon
+        Image {
+            source: root.iconSource
+            width: Kirigami.Units.iconSizes.small
+            height: Kirigami.Units.iconSizes.small
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+        }
+    }
+
+    Component {
+        id: themeIcon
+        Kirigami.Icon {
+            source: root.iconSource
+            width: Kirigami.Units.iconSizes.small
+            height: Kirigami.Units.iconSizes.small
         }
     }
 }
