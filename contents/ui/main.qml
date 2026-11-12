@@ -37,7 +37,8 @@ PlasmoidItem {
         return (source === undefined || source === null) ? "../icons/fan.svg" : source
     }
     readonly property bool showIcon: (Plasmoid.configuration.showIcon !== false) && iconSource.trim().length > 0
-    readonly property bool showLevel: Plasmoid.configuration.showLevel !== false
+    readonly property bool showGauge: Plasmoid.configuration.showGauge !== false
+    readonly property bool showLevel: Plasmoid.configuration.showLevel === true
     readonly property bool showStatus: Plasmoid.configuration.showStatus !== false
     readonly property bool showTemperature: Plasmoid.configuration.showTemperature !== false
     readonly property bool boldStatus: Plasmoid.configuration.boldStatus === true
@@ -46,6 +47,9 @@ PlasmoidItem {
     readonly property int compactColumns: {
         var count = 0
         if (showIcon) {
+            count += 1
+        }
+        if (showGauge) {
             count += 1
         }
         if (showLevel) {
@@ -368,9 +372,9 @@ PlasmoidItem {
 
             Item {
                 id: levelGauge
-                visible: root.showLevel
-                Layout.preferredWidth: root.showLevel ? gaugeSize : 0
-                Layout.preferredHeight: root.showLevel ? gaugeSize : 0
+                visible: root.showGauge
+                Layout.preferredWidth: root.showGauge ? gaugeSize : 0
+                Layout.preferredHeight: root.showGauge ? gaugeSize : 0
                 Layout.alignment: Qt.AlignHCenter
 
                 readonly property int gaugeSize: Kirigami.Units.iconSizes.small + 6
@@ -501,6 +505,13 @@ PlasmoidItem {
                     border.width: 1
                     border.color: Kirigami.Theme.backgroundColor
                 }
+            }
+
+            PlasmaComponents3.Label {
+                visible: root.showLevel
+                text: root.levelLabel
+                font.bold: root.boldLevel
+                Layout.alignment: Qt.AlignHCenter
             }
 
             PlasmaComponents3.Label {

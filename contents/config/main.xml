@@ -34,9 +34,13 @@
             <label>Show the compact icon.</label>
             <default>true</default>
         </entry>
-        <entry name="showLevel" type="Bool">
-            <label>Show the fan level in the compact display.</label>
+        <entry name="showGauge" type="Bool">
+            <label>Show the level gauge in the compact display.</label>
             <default>true</default>
+        </entry>
+        <entry name="showLevel" type="Bool">
+            <label>Show the fan level text in the compact display.</label>
+            <default>false</default>
         </entry>
         <entry name="showStatus" type="Bool">
             <label>Show the AC, battery, power save, or pin status in the compact display.</label>

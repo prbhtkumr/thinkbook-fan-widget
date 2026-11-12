@@ -7,6 +7,7 @@ import org.kde.kcmutils as KCM
 KCM.SimpleKCM {
     id: page
 
+    property alias cfg_showGauge: showGaugeCheck.checked
     property alias cfg_showLevel: showLevelCheck.checked
     property alias cfg_boldLevel: boldLevelCheck.checked
     property alias cfg_showStatus: showStatusCheck.checked
@@ -59,7 +60,17 @@ KCM.SimpleKCM {
         }
 
         RowLayout {
-            Kirigami.FormData.label: "Level:"
+            Kirigami.FormData.label: "Level gauge:"
+            spacing: Kirigami.Units.largeSpacing
+
+            QQC2.CheckBox {
+                id: showGaugeCheck
+                text: "Show"
+            }
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: "Level text:"
             spacing: Kirigami.Units.largeSpacing
 
             QQC2.CheckBox {
