@@ -12,7 +12,6 @@ PlasmoidItem {
     property int fanLevel: -1
     property string fanMode: "off"
     property int fanTemp: -1
-    property bool onAc: false
     property int pinnedLevel: -1
     property int pendingLevel: -1
     property double pendingUntil: 0
@@ -45,7 +44,6 @@ PlasmoidItem {
             fanLevel = -1
             fanMode = "off"
             fanTemp = -1
-            onAc = false
             pinnedLevel = -1
             pendingLevel = -1
             pendingUntil = 0
@@ -57,7 +55,6 @@ PlasmoidItem {
             fanLevel = (typeof state.level === "number") ? state.level : -1
             fanMode = state.mode || "off"
             fanTemp = (typeof state.temp === "number") ? state.temp : -1
-            onAc = !!state.ac
             pinnedLevel = (typeof state.pin === "number") ? state.pin : -1
 
             if (pendingLevel >= 0 && fanMode === "pin" && pinnedLevel === pendingLevel) {
@@ -144,7 +141,7 @@ PlasmoidItem {
 
     toolTipMainText: "ThinkBook fan"
     toolTipSubText: {
-        if (fanLevel < 0) {
+        if (effectiveLevel < 0) {
             return "No state from the fan service"
         }
         var parts = ["Level " + effectiveLevel, modeLabel]
