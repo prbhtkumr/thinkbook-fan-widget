@@ -407,10 +407,12 @@ PlasmoidItem {
     }
 
     fullRepresentation: Item {
-        Layout.preferredWidth: Kirigami.Units.gridUnit * 18
-        Layout.minimumWidth: Kirigami.Units.gridUnit * 18
-        Layout.preferredHeight: outer.implicitHeight + Kirigami.Units.largeSpacing * 2
-        Layout.minimumHeight: outer.implicitHeight + Kirigami.Units.largeSpacing * 2
+        implicitWidth: Kirigami.Units.gridUnit * 20
+        implicitHeight: Kirigami.Units.gridUnit * 15
+        Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+        Layout.minimumWidth: Kirigami.Units.gridUnit * 17
+        Layout.preferredHeight: Kirigami.Units.gridUnit * 15
+        Layout.minimumHeight: Kirigami.Units.gridUnit * 12
 
         ColumnLayout {
             id: outer
@@ -419,18 +421,22 @@ PlasmoidItem {
             spacing: Kirigami.Units.smallSpacing
             clip: true
 
-            QQC2.SwipeView {
-                id: swipeView
+            Item {
+                id: pager
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.max(controlPage.implicitHeight, graphPage.implicitHeight)
-                currentIndex: 0
-                interactive: true
+                Layout.fillHeight: true
+                Layout.minimumWidth: 0
+                Layout.preferredWidth: 0
+                Layout.maximumWidth: outer.width
                 clip: true
 
-                Component.onCompleted: {
-                    if (contentItem) {
-                        contentItem.clip = true
-                    }
+                readonly property int pageCount: 2
+                readonly property int currentIndex: Math.max(0, Math.min(pageCount - 1, Math.round(position)))
+                property real position: 0
+                property real dragStart: 0
+
+                function goTo(index) {
+                    position = Math.max(0, Math.min(pageCount - 1, index))
                 }
 
                 onCurrentIndexChanged: {
@@ -439,22 +445,26 @@ PlasmoidItem {
                     }
                 }
 
-                WheelHandler {
-                    acceptedDevices: PointerDevice.Mouse
-                    onWheel: (wheel) => {
-                        if (wheel.angleDelta.x > 0 || wheel.angleDelta.y < 0) {
-                            swipeView.currentIndex = Math.min(swipeView.count - 1, swipeView.currentIndex + 1)
-                        } else if (wheel.angleDelta.x < 0 || wheel.angleDelta.y > 0) {
-                            swipeView.currentIndex = Math.max(0, swipeView.currentIndex - 1)
+                Row {
+                    id: pagerRow
+                    width: pager.width * pager.pageCount
+                    height: pager.height
+                    spacing: 0
+                    x: -pager.position * pager.width
+
+                    Behavior on x {
+                        enabled: !pagerDrag.active
+                        NumberAnimation {
+                            duration: Kirigami.Units.shortDuration * 2
+                            easing.type: Easing.OutCubic
                         }
                     }
-                }
 
-                ColumnLayout {
-                    id: controlPage
-                    width: swipeView.width
-                    height: swipeView.height
-                    spacing: Kirigami.Units.smallSpacing
+                    ColumnLayout {
+                        id: controlPage
+                        width: pager.width
+                        height: pager.height
+                        spacing: Kirigami.Units.smallSpacing
 
                     Rectangle {
                 Layout.fillWidth: true
@@ -544,6 +554,7 @@ PlasmoidItem {
                 PlasmaComponents3.Button {
                     id: powerSaveButton
                     Layout.fillWidth: true
+                    Layout.minimumWidth: 0
                     text: "Power Save"
                     checkable: true
                     checked: !root.pinnedNow && root.fanCurve === "power-save"
@@ -567,6 +578,7 @@ PlasmoidItem {
                 PlasmaComponents3.Button {
                     id: balancedButton
                     Layout.fillWidth: true
+                    Layout.minimumWidth: 0
                     text: "Balanced"
                     checkable: true
                     checked: !root.pinnedNow && root.fanCurve === "auto"
@@ -590,6 +602,7 @@ PlasmoidItem {
                 PlasmaComponents3.Button {
                     id: aggressiveButton
                     Layout.fillWidth: true
+                    Layout.minimumWidth: 0
                     text: "Aggressive"
                     checkable: true
                     checked: !root.pinnedNow && root.fanCurve === "aggressive"
@@ -630,6 +643,7 @@ PlasmoidItem {
                         id: levelButton
                         required property int modelData
                         Layout.fillWidth: true
+                        Layout.minimumWidth: 0
                         text: modelData
                         font.bold: root.effectiveLevel === modelData
                         checkable: true
@@ -660,13 +674,17 @@ PlasmoidItem {
                 color: Kirigami.Theme.negativeTextColor
                 font: Kirigami.Theme.smallFont
             }
+
+            Item {
+                Layout.fillHeight: true
+            }
                 }
 
-                ColumnLayout {
-                    id: graphPage
-                    width: swipeView.width
-                    height: swipeView.height
-                    spacing: Kirigami.Units.smallSpacing
+                    ColumnLayout {
+                        id: graphPage
+                        width: pager.width
+                        height: pager.height
+                        spacing: Kirigami.Units.smallSpacing
 
                     Canvas {
                         id: graphCanvas
@@ -865,11 +883,54 @@ PlasmoidItem {
                         }
                     }
                 }
+                }
+
+                DragHandler {
+                    id: pagerDrag
+                    target: null
+                    xAxis.enabled: true
+                    yAxis.enabled: false
+
+                    onActiveChanged: {
+                        if (active) {
+                            pager.dragStart = pager.position
+                            return
+                        }
+                        var start = pager.dragStart
+                        var velocity = pagerDrag.velocity.x
+                        var target = Math.round(start)
+                        if (pager.position - start > 0.18 || velocity < -500) {
+                            target = Math.floor(start) + 1
+                        } else if (start - pager.position > 0.18 || velocity > 500) {
+                            target = Math.ceil(start) - 1
+                        }
+                        pager.goTo(target)
+                    }
+
+                    onTranslationChanged: {
+                        if (!active || pager.width <= 0) {
+                            return
+                        }
+                        var next = pager.dragStart - translation.x / pager.width
+                        pager.position = Math.max(-0.04, Math.min(pager.pageCount - 1 + 0.04, next))
+                    }
+                }
+
+                WheelHandler {
+                    acceptedDevices: PointerDevice.Mouse
+                    onWheel: (wheel) => {
+                        if (wheel.angleDelta.x > 0 || wheel.angleDelta.y < 0) {
+                            pager.goTo(pager.currentIndex + 1)
+                        } else if (wheel.angleDelta.x < 0 || wheel.angleDelta.y > 0) {
+                            pager.goTo(pager.currentIndex - 1)
+                        }
+                    }
+                }
             }
 
             QQC2.PageIndicator {
-                count: swipeView.count
-                currentIndex: swipeView.currentIndex
+                count: pager.pageCount
+                currentIndex: pager.currentIndex
                 Layout.alignment: Qt.AlignHCenter
             }
         }
