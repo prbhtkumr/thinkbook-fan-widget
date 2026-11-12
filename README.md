@@ -33,8 +33,9 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 
 ## Use
 
-- Left click: open the popup. Use the Control and Graph tabs.
+- Left click: open the popup. Swipe or scroll horizontally between the Control and Graph pages.
 - Scroll up or down over the widget: change the fan level one step.
+- Middle click: release the pinned level and resume the active curve.
 - Pick 3 to 7: pin that level.
 - Pick a curve: follow that curve and remove any pin.
 

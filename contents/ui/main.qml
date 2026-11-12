@@ -333,7 +333,11 @@ PlasmoidItem {
         if (fanTemp >= 0) {
             parts.push(tempLabel)
         }
-        parts.push("Scroll to change, click for options")
+        if (pinnedNow) {
+            parts.push("Scroll to change, middle click to resume the curve")
+        } else {
+            parts.push("Scroll to change, click for options")
+        }
         return parts.join(", ")
     }
 
@@ -392,9 +396,15 @@ PlasmoidItem {
 
         MouseArea {
             anchors.fill: parent
-            acceptedButtons: Qt.LeftButton
+            acceptedButtons: Qt.LeftButton | Qt.MiddleButton
 
-            onClicked: root.expanded = !root.expanded
+            onClicked: (mouse) => {
+                if (mouse.button === Qt.MiddleButton) {
+                    root.clearPin()
+                    return
+                }
+                root.expanded = !root.expanded
+            }
 
             onWheel: (wheel) => {
                 if (wheel.angleDelta.y > 0) {
