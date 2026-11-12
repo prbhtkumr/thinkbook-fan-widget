@@ -362,16 +362,15 @@ PlasmoidItem {
     compactRepresentation: Item {
         id: compact
 
-        Layout.minimumWidth: Math.max(content.implicitWidth, Kirigami.Units.iconSizes.small) + Kirigami.Units.smallSpacing * 2
+        Layout.minimumWidth: Math.max(content.implicitWidth, Kirigami.Units.iconSizes.small)
         Layout.preferredWidth: Layout.minimumWidth
         Layout.maximumWidth: Layout.minimumWidth
-        Layout.minimumHeight: Math.max(content.implicitHeight, Kirigami.Units.iconSizes.small) + Kirigami.Units.smallSpacing * 2
-        Layout.preferredHeight: Layout.minimumHeight
-        Layout.maximumHeight: Layout.minimumHeight
+        Layout.minimumHeight: Kirigami.Units.iconSizes.small
+        Layout.preferredHeight: Kirigami.Units.gridUnit + Kirigami.Units.smallSpacing * 3
 
         GridLayout {
             id: content
-            anchors.centerIn: parent
+            anchors.fill: parent
             columns: root.compactColumns
             columnSpacing: Kirigami.Units.smallSpacing
             rowSpacing: 0
@@ -380,7 +379,7 @@ PlasmoidItem {
                 visible: root.showIcon
                 Layout.preferredWidth: root.showIcon ? Kirigami.Units.iconSizes.small : 0
                 Layout.preferredHeight: root.showIcon ? Kirigami.Units.iconSizes.small : 0
-                Layout.alignment: Qt.AlignHCenter
+                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                 sourceComponent: root.showIcon ? (root.iconSource.indexOf("/") >= 0 ? imageIcon : themeIcon) : null
             }
 
@@ -389,9 +388,9 @@ PlasmoidItem {
                 visible: root.showGauge
                 Layout.preferredWidth: root.showGauge ? gaugeSize : 0
                 Layout.preferredHeight: root.showGauge ? gaugeSize : 0
-                Layout.alignment: Qt.AlignHCenter
+                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
 
-                readonly property int gaugeSize: Kirigami.Units.iconSizes.small + 6
+                readonly property int gaugeSize: Math.max(Kirigami.Units.iconSizes.small, Math.min(compact.height, Kirigami.Units.gridUnit * 2))
                 readonly property real startAngle: Math.PI * 0.75
                 readonly property real sweepAngle: Math.PI * 1.5
                 property real shownLevel: root.effectiveLevel >= 0 ? root.effectiveLevel : root.minFanLevel
@@ -430,7 +429,7 @@ PlasmoidItem {
 
                         var cx = width / 2;
                         var cy = height / 2;
-                        var outerR = Math.min(width, height) / 2 - 1.5;
+                        var outerR = Math.min(width, height) / 2 - 0.9;
                         var innerR = outerR - 3.5;
                         var textColor = Kirigami.Theme.textColor;
                         var start = levelGauge.startAngle;
@@ -526,7 +525,7 @@ PlasmoidItem {
                 visible: root.showLevel
                 text: root.levelLabel
                 font.bold: root.boldLevel
-                Layout.alignment: Qt.AlignHCenter
+                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             }
 
             PlasmaComponents3.Label {
@@ -536,7 +535,7 @@ PlasmoidItem {
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 font.bold: root.boldStatus
                 opacity: root.boldStatus ? 1.0 : 0.8
-                Layout.alignment: Qt.AlignHCenter
+                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             }
 
             PlasmaComponents3.Label {
@@ -546,7 +545,7 @@ PlasmoidItem {
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 font.bold: root.boldTemperature
                 opacity: root.boldTemperature ? 1.0 : 0.8
-                Layout.alignment: Qt.AlignHCenter
+                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             }
         }
 
@@ -1126,7 +1125,7 @@ PlasmoidItem {
             QQC2.PageIndicator {
                 count: pager.pageCount
                 currentIndex: pager.currentIndex
-                Layout.alignment: Qt.AlignHCenter
+                Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             }
         }
     }
