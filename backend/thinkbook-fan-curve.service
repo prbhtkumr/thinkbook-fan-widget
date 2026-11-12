@@ -1,0 +1,14 @@
+[Unit]
+Description=AC-aware fan curve (Lenovo ThinkBook 15 G2 ITL)
+After=multi-user.target systemd-modules-load.service
+
+[Service]
+Type=simple
+ExecStartPre=-/sbin/modprobe thinkpad_acpi
+ExecStart=/usr/bin/python3 /usr/local/sbin/thinkbook-fan-curve.py
+ExecStopPost=/bin/sh -c 'echo "level auto" > /proc/acpi/ibm/fan 2>/dev/null || true'
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

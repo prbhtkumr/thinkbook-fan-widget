@@ -1,0 +1,18 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Id": "io.github.prbhtkumr.thinkbookfan",
+    "Name": "ThinkBook Fan",
+    "Description": "Panel control for the ThinkBook fan level",
+    "Icon": "cpu",
+    "Authors": [
+      {
+        "Name": "Prabhat Kumar"
+      }
+    ],
+    "License": "MIT",
+    "Version": "0.1.0",
+    "Category": "System Information"
+  },
+  "X-Plasma-API-Minimum-Version": "6.0"
+}

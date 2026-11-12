@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.user
+build/
+dist/
+.vscode/
+.idea/
