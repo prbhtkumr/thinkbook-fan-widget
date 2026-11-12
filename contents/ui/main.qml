@@ -445,12 +445,12 @@ PlasmoidItem {
                     }
                 }
 
-                Row {
-                    id: pagerRow
-                    width: pager.width * pager.pageCount
+                ColumnLayout {
+                    id: controlPage
+                    width: pager.width
                     height: pager.height
-                    spacing: 0
                     x: -pager.position * pager.width
+                    spacing: Kirigami.Units.smallSpacing
 
                     Behavior on x {
                         enabled: !pagerDrag.active
@@ -459,12 +459,6 @@ PlasmoidItem {
                             easing.type: Easing.OutCubic
                         }
                     }
-
-                    ColumnLayout {
-                        id: controlPage
-                        width: pager.width
-                        height: pager.height
-                        spacing: Kirigami.Units.smallSpacing
 
                     Rectangle {
                 Layout.fillWidth: true
@@ -680,11 +674,20 @@ PlasmoidItem {
             }
                 }
 
-                    ColumnLayout {
-                        id: graphPage
-                        width: pager.width
-                        height: pager.height
-                        spacing: Kirigami.Units.smallSpacing
+                ColumnLayout {
+                    id: graphPage
+                    width: pager.width
+                    height: pager.height
+                    x: (1 - pager.position) * pager.width
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Behavior on x {
+                        enabled: !pagerDrag.active
+                        NumberAnimation {
+                            duration: Kirigami.Units.shortDuration * 2
+                            easing.type: Easing.OutCubic
+                        }
+                    }
 
                     Canvas {
                         id: graphCanvas
@@ -712,8 +715,14 @@ PlasmoidItem {
                             var textColor = Kirigami.Theme.textColor;
                             var minC = 30;
                             var maxC = 100;
+                            var padLeft = 36;
+                            var padRight = 8;
+                            var padTop = 8;
+                            var padBottom = 4;
+                            var plotW = Math.max(1, w - padLeft - padRight);
+                            var plotH = Math.max(1, h - padTop - padBottom);
                             var yFor = function(c) {
-                                return h - ((c - minC) / (maxC - minC)) * h;
+                                return padTop + plotH - ((c - minC) / (maxC - minC)) * plotH;
                             };
 
                             var drawDashedLine = function(points, dash, gap) {
@@ -752,10 +761,10 @@ PlasmoidItem {
                             };
 
                             var drawDashedHorizontal = function(y, dash, gap) {
-                                var x = 0;
-                                while (x < w) {
+                                var x = padLeft;
+                                while (x < w - padRight) {
                                     ctx.moveTo(x, y);
-                                    ctx.lineTo(Math.min(w, x + dash), y);
+                                    ctx.lineTo(Math.min(w - padRight, x + dash), y);
                                     x += dash + gap;
                                 }
                                 ctx.stroke();
@@ -763,20 +772,20 @@ PlasmoidItem {
 
                             var guides = [40, 60, 80, 100];
                             ctx.font = "10px sans-serif";
-                            ctx.textAlign = "left";
+                            ctx.textAlign = "right";
                             ctx.textBaseline = "middle";
                             for (var g = 0; g < guides.length; ++g) {
                                 var guideY = Math.round(yFor(guides[g])) + 0.5;
                                 ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.12);
                                 ctx.lineWidth = 1;
                                 ctx.beginPath();
-                                ctx.moveTo(0, guideY);
-                                ctx.lineTo(w, guideY);
+                                ctx.moveTo(padLeft, guideY);
+                                ctx.lineTo(w - padRight, guideY);
                                 ctx.stroke();
 
                                 ctx.fillStyle = textColor;
                                 ctx.globalAlpha = 0.6;
-                                ctx.fillText(root.tempUnitLabel(guides[g]), 4, Math.max(8, Math.min(h - 8, guideY)));
+                                ctx.fillText(root.tempUnitLabel(guides[g]), padLeft - 6, Math.max(padTop, Math.min(h - padBottom, guideY)));
                                 ctx.globalAlpha = 1;
                             }
 
@@ -795,7 +804,7 @@ PlasmoidItem {
                             var newest = data[data.length - 1].t;
                             var oldest = newest - root.graphDuration;
                             var xFor = function(t) {
-                                return ((t - oldest) / root.graphDuration) * w;
+                                return padLeft + ((t - oldest) / root.graphDuration) * plotW;
                             };
 
                             var rawPoints = [];
@@ -806,6 +815,11 @@ PlasmoidItem {
                                     maxRaw = data[i].raw;
                                 }
                             }
+
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.rect(padLeft, padTop, plotW, plotH);
+                            ctx.clip();
 
                             ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.45);
                             ctx.lineWidth = 1;
@@ -823,6 +837,7 @@ PlasmoidItem {
                                 }
                             }
                             ctx.stroke();
+                            ctx.restore();
 
                             if (maxRaw > -Infinity) {
                                 var peakY = Math.round(yFor(maxRaw)) + 0.5;
@@ -836,7 +851,7 @@ PlasmoidItem {
                                 ctx.font = "10px sans-serif";
                                 ctx.textAlign = "right";
                                 ctx.textBaseline = "bottom";
-                                ctx.fillText("Peak " + root.tempUnitLabel(maxRaw), w - 4, Math.max(12, peakY - 2));
+                                ctx.fillText("Peak " + root.tempUnitLabel(maxRaw), w - padRight - 2, Math.max(padTop + 8, peakY - 2));
                                 ctx.globalAlpha = 1;
                             }
                         }
@@ -882,7 +897,6 @@ PlasmoidItem {
                             opacity: 0.8
                         }
                     }
-                }
                 }
 
                 DragHandler {
