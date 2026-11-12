@@ -40,7 +40,7 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 
 When a level is pinned, the curve buttons lose their highlight. The pinned level is the only active control.
 
-The compact display shows `L<level>` and `AC`, `BAT`, `PWR`, or `PIN`. The tooltip shows the package temperature in the selected unit.
+The compact title can show the icon, level, status, and temperature. The tooltip shows the package temperature in the selected unit.
 
 ## Curves
 
@@ -56,7 +56,7 @@ In Settings, choose which preset applies to each power state:
 - Default, meaning on battery
 - On power save, meaning the platform profile is low-power or the battery is at or below 20 percent
 
-The active curve is shown in the popup and tooltip. The popup curve buttons change the curve for the current power state and remove any manual pin. The compact display shows `AC`, `BAT`, or `PWR`.
+The active curve is shown in the popup and tooltip. The popup curve buttons change the curve for the current power state and remove any manual pin. The compact display shows the status as `AC`, `BAT`, or `PWR` when status is enabled.
 
 ## Settings
 
@@ -67,8 +67,8 @@ Right click the widget and choose Configure.
 - On AC power: curve used while plugged in.
 - Default: curve used on battery.
 - On power save: curve used in power save.
-- Show icon: uncheck to hide the icon. Clearing the icon field also hides it.
-- Icon: a theme icon name such as `cpu`, or a path such as `../icons/fan.svg`. The default is the bundled fan icon.
+- Title: choose which items appear in the compact display: icon, level, status, temperature.
+- Icon: a theme icon name such as `cpu`, or a path such as `../icons/fan.svg`. The default is the bundled fan icon. Clearing the field also hides the icon.
 
 The widget writes the minimum level to `/run/thinkbook-fan/min-level` and the curve selection to `/run/thinkbook-fan/curves`. The service reads both within 2 seconds.
 

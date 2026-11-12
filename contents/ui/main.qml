@@ -29,6 +29,25 @@ PlasmoidItem {
         return (source === undefined || source === null) ? "../icons/fan.svg" : source
     }
     readonly property bool showIcon: (Plasmoid.configuration.showIcon !== false) && iconSource.trim().length > 0
+    readonly property bool showLevel: Plasmoid.configuration.showLevel !== false
+    readonly property bool showStatus: Plasmoid.configuration.showStatus !== false
+    readonly property bool showTemperature: Plasmoid.configuration.showTemperature !== false
+    readonly property int compactColumns: {
+        var count = 0
+        if (showIcon) {
+            count += 1
+        }
+        if (showLevel) {
+            count += 1
+        }
+        if (showStatus) {
+            count += 1
+        }
+        if (showTemperature) {
+            count += 1
+        }
+        return Plasmoid.formFactor === PlasmaCore.Types.Vertical ? 1 : Math.max(1, count)
+    }
     readonly property var levelModel: {
         var levels = []
         for (var i = minFanLevel; i <= 7; i++) {
@@ -253,17 +272,17 @@ PlasmoidItem {
     compactRepresentation: Item {
         id: compact
 
-        Layout.minimumWidth: content.implicitWidth + Kirigami.Units.smallSpacing * 2
+        Layout.minimumWidth: Math.max(content.implicitWidth, Kirigami.Units.iconSizes.small) + Kirigami.Units.smallSpacing * 2
         Layout.preferredWidth: Layout.minimumWidth
         Layout.maximumWidth: Layout.minimumWidth
-        Layout.minimumHeight: content.implicitHeight + Kirigami.Units.smallSpacing * 2
+        Layout.minimumHeight: Math.max(content.implicitHeight, Kirigami.Units.iconSizes.small) + Kirigami.Units.smallSpacing * 2
         Layout.preferredHeight: Layout.minimumHeight
         Layout.maximumHeight: Layout.minimumHeight
 
         GridLayout {
             id: content
             anchors.centerIn: parent
-            columns: Plasmoid.formFactor === PlasmaCore.Types.Vertical ? 1 : (root.showIcon ? 3 : 2)
+            columns: root.compactColumns
             columnSpacing: Kirigami.Units.smallSpacing
             rowSpacing: 0
 
@@ -276,13 +295,23 @@ PlasmoidItem {
             }
 
             PlasmaComponents3.Label {
+                visible: root.showLevel
                 text: root.levelLabel
                 font.bold: true
                 Layout.alignment: Qt.AlignHCenter
             }
 
             PlasmaComponents3.Label {
+                visible: root.showStatus
                 text: root.modeLabel
+                font: Kirigami.Theme.smallFont
+                opacity: 0.8
+                Layout.alignment: Qt.AlignHCenter
+            }
+
+            PlasmaComponents3.Label {
+                visible: root.showTemperature
+                text: root.tempLabel
                 font: Kirigami.Theme.smallFont
                 opacity: 0.8
                 Layout.alignment: Qt.AlignHCenter

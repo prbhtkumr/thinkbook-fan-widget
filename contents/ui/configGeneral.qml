@@ -9,6 +9,9 @@ KCM.SimpleKCM {
 
     property alias cfg_minLevel: levelSpin.value
     property alias cfg_showIcon: showIconCheck.checked
+    property alias cfg_showLevel: showLevelCheck.checked
+    property alias cfg_showStatus: showStatusCheck.checked
+    property alias cfg_showTemperature: showTemperatureCheck.checked
     property alias cfg_iconSource: iconField.text
     property string cfg_curveAc: "auto"
     property string cfg_curveDefault: "auto"
@@ -114,10 +117,33 @@ KCM.SimpleKCM {
             }
         }
 
+        PlasmaComponents3.Label {
+            Kirigami.FormData.isSection: true
+            text: "Title"
+        }
+
         PlasmaComponents3.CheckBox {
             id: showIconCheck
             Kirigami.FormData.label: "Icon:"
-            text: "Show icon"
+            text: "Show"
+        }
+
+        PlasmaComponents3.CheckBox {
+            id: showLevelCheck
+            Kirigami.FormData.label: "Level:"
+            text: "Show"
+        }
+
+        PlasmaComponents3.CheckBox {
+            id: showStatusCheck
+            Kirigami.FormData.label: "Status:"
+            text: "Show"
+        }
+
+        PlasmaComponents3.CheckBox {
+            id: showTemperatureCheck
+            Kirigami.FormData.label: "Temperature:"
+            text: "Show"
         }
 
         PlasmaComponents3.ComboBox {
