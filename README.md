@@ -2,7 +2,7 @@
 
 Plasma 6 panel widget for the fan curve service on a Lenovo ThinkBook 15 G2 ITL.
 
-The widget shows the current fan level and whether the service is on AC, on battery, or pinned. Click it to open the level menu. Scroll over it to move one level. Selecting Auto returns control to the AC/battery curve.
+The widget shows the current fan level as a dual ring gauge and shows whether the service is on AC, on battery, or pinned. The inner segmented ring is the fan level, the outer arc is temperature, and a dot marks a pinned level. Click it to open the level menu. Scroll over it to move one level. Selecting Auto returns control to the AC/battery curve.
 
 ## Requirements
 
@@ -41,7 +41,7 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 
 When a level is pinned, the curve buttons lose their highlight. The pinned level is the only active control.
 
-The compact title can show the icon, level, status, and temperature. The tooltip shows the selected temperature in the selected unit.
+The compact title can show the icon, level gauge, status, and temperature. The gauge shows the level inside the center and fills the inner ring with the theme accent. The outer ring runs from blue at 30 C to red at 100 C. The tooltip shows the selected temperature in the selected unit.
 
 ## Curves
 

@@ -366,11 +366,141 @@ PlasmoidItem {
                 sourceComponent: root.showIcon ? (root.iconSource.indexOf("/") >= 0 ? imageIcon : themeIcon) : null
             }
 
-            PlasmaComponents3.Label {
+            Item {
+                id: levelGauge
                 visible: root.showLevel
-                text: root.levelLabel
-                font.bold: root.boldLevel
+                Layout.preferredWidth: root.showLevel ? gaugeSize : 0
+                Layout.preferredHeight: root.showLevel ? gaugeSize : 0
                 Layout.alignment: Qt.AlignHCenter
+
+                readonly property int gaugeSize: Kirigami.Units.iconSizes.small + 6
+                readonly property real startAngle: Math.PI * 0.75
+                readonly property real sweepAngle: Math.PI * 1.5
+                property real shownLevel: root.effectiveLevel >= 0 ? root.effectiveLevel : root.minFanLevel
+                property real shownTemp: root.fanTemp >= 0 ? root.fanTemp : 30
+
+                Behavior on shownLevel {
+                    NumberAnimation {
+                        duration: 260
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                Behavior on shownTemp {
+                    NumberAnimation {
+                        duration: 420
+                        easing.type: Easing.OutCubic
+                    }
+                }
+
+                onShownLevelChanged: if (gaugeCanvas) gaugeCanvas.requestPaint()
+                onShownTempChanged: if (gaugeCanvas) gaugeCanvas.requestPaint()
+
+                Canvas {
+                    id: gaugeCanvas
+                    anchors.fill: parent
+                    Component.onCompleted: Qt.callLater(requestPaint)
+                    onWidthChanged: requestPaint()
+                    onHeightChanged: requestPaint()
+
+                    onPaint: {
+                        var ctx = getContext("2d");
+                        ctx.clearRect(0, 0, width, height);
+                        if (width <= 0 || height <= 0) {
+                            return;
+                        }
+
+                        var cx = width / 2;
+                        var cy = height / 2;
+                        var outerR = Math.min(width, height) / 2 - 1.5;
+                        var innerR = outerR - 3.5;
+                        var textColor = Kirigami.Theme.textColor;
+                        var start = levelGauge.startAngle;
+                        var sweep = levelGauge.sweepAngle;
+                        var hasLevel = root.effectiveLevel >= 0;
+                        var hasTemp = root.fanTemp >= 0;
+
+                        var tempColor = function(c) {
+                            var t = Math.max(0, Math.min(1, (c - 30) / 70));
+                            var r = 90 + (255 - 90) * t;
+                            var g = 160 + (90 - 160) * t;
+                            var b = 255 + (90 - 255) * t;
+                            return Qt.rgba(r / 255, g / 255, b / 255, 1);
+                        };
+
+                        ctx.lineCap = "round";
+                        ctx.lineWidth = 1.8;
+                        ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.25);
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, outerR, start, start + sweep, false);
+                        ctx.stroke();
+
+                        if (hasTemp) {
+                            var tfrac = Math.max(0, Math.min(1, (levelGauge.shownTemp - 30) / 70));
+                            if (tfrac > 0.001) {
+                                var steps = Math.max(2, Math.round(tfrac * 48));
+                                ctx.lineCap = "butt";
+                                for (var i = 0; i < steps; ++i) {
+                                    var a0 = start + sweep * tfrac * (i / steps);
+                                    var a1 = start + sweep * tfrac * ((i + 1) / steps);
+                                    var mid = 30 + 70 * tfrac * ((i + 0.5) / steps);
+                                    ctx.strokeStyle = tempColor(mid);
+                                    ctx.beginPath();
+                                    ctx.arc(cx, cy, outerR, a0, a1, false);
+                                    ctx.stroke();
+                                }
+                            }
+                        }
+
+                        var levelCount = 7 - root.minFanLevel + 1;
+                        var segSweep = sweep / levelCount;
+                        var gapAngle = Math.PI / 10;
+                        var filled = hasLevel ? Math.max(0, Math.min(levelCount, levelGauge.shownLevel - root.minFanLevel + 1)) : 0;
+                        ctx.lineCap = "butt";
+                        ctx.lineWidth = 1.8;
+                        for (var s = 0; s < levelCount; ++s) {
+                            var segStart = start + s * segSweep + gapAngle / 2;
+                            var segEnd = start + (s + 1) * segSweep - gapAngle / 2;
+                            var segFill = Math.max(0, Math.min(1, filled - s));
+                            ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.25);
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, innerR, segStart, segEnd, false);
+                            ctx.stroke();
+                            if (segFill > 0.001) {
+                                ctx.strokeStyle = root.graphAccentColor;
+                                ctx.beginPath();
+                                ctx.arc(cx, cy, innerR, segStart, segStart + (segEnd - segStart) * segFill, false);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                }
+
+                Timer {
+                    interval: 200
+                    running: true
+                    repeat: false
+                    onTriggered: gaugeCanvas.requestPaint()
+                }
+
+                PlasmaComponents3.Label {
+                    anchors.centerIn: parent
+                    text: root.effectiveLevel >= 0 ? root.effectiveLevel : "?"
+                    font.pixelSize: Math.max(8, Math.round(levelGauge.gaugeSize * 0.36))
+                    font.bold: root.boldLevel
+                }
+
+                Rectangle {
+                    visible: root.pinnedNow
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    width: 5
+                    height: 5
+                    radius: 2.5
+                    color: root.graphAccentColor
+                    border.width: 1
+                    border.color: Kirigami.Theme.backgroundColor
+                }
             }
 
             PlasmaComponents3.Label {
