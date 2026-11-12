@@ -38,6 +38,10 @@
             <label>Show the level gauge in the compact display.</label>
             <default>true</default>
         </entry>
+        <entry name="boldGauge" type="Bool">
+            <label>Show the level number in the gauge in bold.</label>
+            <default>true</default>
+        </entry>
         <entry name="showLevel" type="Bool">
             <label>Show the fan level text in the compact display.</label>
             <default>false</default>

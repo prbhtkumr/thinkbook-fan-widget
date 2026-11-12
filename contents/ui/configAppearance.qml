@@ -8,6 +8,7 @@ KCM.SimpleKCM {
     id: page
 
     property alias cfg_showGauge: showGaugeCheck.checked
+    property alias cfg_boldGauge: boldGaugeCheck.checked
     property alias cfg_showLevel: showLevelCheck.checked
     property alias cfg_boldLevel: boldLevelCheck.checked
     property alias cfg_showStatus: showStatusCheck.checked
@@ -66,6 +67,11 @@ KCM.SimpleKCM {
             QQC2.CheckBox {
                 id: showGaugeCheck
                 text: "Show"
+            }
+
+            QQC2.CheckBox {
+                id: boldGaugeCheck
+                text: "Bold"
             }
         }
 

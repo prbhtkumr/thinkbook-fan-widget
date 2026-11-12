@@ -69,7 +69,7 @@ Right click the widget and choose Configure. The settings are grouped into pages
 
 - Fan: minimum fan level, 3 to 7, and the temperature input source. The level clamps manual pins and every curve.
 - Curves: choose the preset for AC power, Default, and Power save.
-- Appearance: temperature unit, a Show toggle for the level gauge, and Show and Bold options for the level text, status, and temperature.
+- Appearance: temperature unit, Show and Bold options for the level gauge, and Show and Bold options for the level text, status, and temperature.
 - Graph: history duration in seconds. The default is 60.
 - Icon: show or hide the title icon, choose a preset, or enter a theme icon name or SVG path. Clearing the field hides the icon.
 

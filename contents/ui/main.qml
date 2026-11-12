@@ -43,6 +43,7 @@ PlasmoidItem {
     readonly property bool showTemperature: Plasmoid.configuration.showTemperature !== false
     readonly property bool boldStatus: Plasmoid.configuration.boldStatus === true
     readonly property bool boldTemperature: Plasmoid.configuration.boldTemperature === true
+    readonly property bool boldGauge: Plasmoid.configuration.boldGauge !== false
     readonly property bool boldLevel: Plasmoid.configuration.boldLevel !== false
     readonly property int compactColumns: {
         var count = 0
@@ -491,7 +492,7 @@ PlasmoidItem {
                     anchors.centerIn: parent
                     text: root.effectiveLevel >= 0 ? root.effectiveLevel : "?"
                     font.pixelSize: Math.max(8, Math.round(levelGauge.gaugeSize * 0.36))
-                    font.bold: root.boldLevel
+                    font.bold: root.boldGauge
                 }
 
                 Rectangle {
