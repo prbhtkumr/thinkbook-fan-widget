@@ -8,6 +8,9 @@ KCM.SimpleKCM {
     id: page
 
     property alias cfg_showGauge: showGaugeCheck.checked
+    property alias cfg_showGaugeLevel: showGaugeLevelCheck.checked
+    property alias cfg_showGaugeNumber: showGaugeNumberCheck.checked
+    property alias cfg_showGaugeTemp: showGaugeTempCheck.checked
     property alias cfg_boldGauge: boldGaugeCheck.checked
     property alias cfg_showLevel: showLevelCheck.checked
     property alias cfg_boldLevel: boldLevelCheck.checked
@@ -72,6 +75,26 @@ KCM.SimpleKCM {
             QQC2.CheckBox {
                 id: boldGaugeCheck
                 text: "Bold"
+            }
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: "Gauge parts:"
+            spacing: Kirigami.Units.largeSpacing
+
+            QQC2.CheckBox {
+                id: showGaugeLevelCheck
+                text: "Level lines"
+            }
+
+            QQC2.CheckBox {
+                id: showGaugeNumberCheck
+                text: "Number"
+            }
+
+            QQC2.CheckBox {
+                id: showGaugeTempCheck
+                text: "Temp line"
             }
         }
 

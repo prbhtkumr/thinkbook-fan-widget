@@ -38,6 +38,18 @@
             <label>Show the level gauge in the compact display.</label>
             <default>true</default>
         </entry>
+        <entry name="showGaugeLevel" type="Bool">
+            <label>Show the level lines in the gauge.</label>
+            <default>true</default>
+        </entry>
+        <entry name="showGaugeNumber" type="Bool">
+            <label>Show the level number in the gauge.</label>
+            <default>true</default>
+        </entry>
+        <entry name="showGaugeTemp" type="Bool">
+            <label>Show the temperature line in the gauge.</label>
+            <default>true</default>
+        </entry>
         <entry name="boldGauge" type="Bool">
             <label>Show the level number in the gauge in bold.</label>
             <default>true</default>

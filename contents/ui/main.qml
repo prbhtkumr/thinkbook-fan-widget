@@ -37,7 +37,10 @@ PlasmoidItem {
         return (source === undefined || source === null) ? "../icons/fan.svg" : source
     }
     readonly property bool showIcon: (Plasmoid.configuration.showIcon !== false) && iconSource.trim().length > 0
-    readonly property bool showGauge: Plasmoid.configuration.showGauge !== false
+    readonly property bool showGaugeLevel: Plasmoid.configuration.showGaugeLevel !== false
+    readonly property bool showGaugeNumber: Plasmoid.configuration.showGaugeNumber !== false
+    readonly property bool showGaugeTemp: Plasmoid.configuration.showGaugeTemp !== false
+    readonly property bool showGauge: (Plasmoid.configuration.showGauge !== false) && (showGaugeLevel || showGaugeNumber || showGaugeTemp)
     readonly property bool showLevel: Plasmoid.configuration.showLevel === true
     readonly property bool showStatus: Plasmoid.configuration.showStatus !== false
     readonly property bool showTemperature: Plasmoid.configuration.showTemperature !== false
@@ -391,6 +394,10 @@ PlasmoidItem {
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
 
                 readonly property int gaugeSize: Math.max(Kirigami.Units.iconSizes.small, Math.min(compact.height, Kirigami.Units.gridUnit * 2))
+                readonly property int partCount: (root.showGaugeLevel ? 1 : 0) + (root.showGaugeNumber ? 1 : 0) + (root.showGaugeTemp ? 1 : 0)
+                readonly property real ringWidth: partCount >= 3 ? 1.8 : partCount === 2 ? 2.4 : 3.2
+                readonly property real ringGap: partCount >= 3 ? 3.5 : partCount === 2 ? 4.0 : 2.4
+                readonly property int numberSize: Math.max(8, Math.round(gaugeSize * (partCount >= 3 ? 0.36 : partCount === 2 ? 0.46 : 0.58)))
                 readonly property real startAngle: Math.PI * 0.75
                 readonly property real sweepAngle: Math.PI * 1.5
                 property real shownLevel: root.effectiveLevel >= 0 ? root.effectiveLevel : root.minFanLevel
@@ -430,12 +437,18 @@ PlasmoidItem {
                         var cx = width / 2;
                         var cy = height / 2;
                         var outerR = Math.min(width, height) / 2 - 0.9;
-                        var innerR = outerR - 3.5;
+                        var innerR = outerR - levelGauge.ringGap;
                         var textColor = Kirigami.Theme.textColor;
                         var start = levelGauge.startAngle;
                         var sweep = levelGauge.sweepAngle;
                         var hasLevel = root.effectiveLevel >= 0;
                         var hasTemp = root.fanTemp >= 0;
+                        var drawLevel = root.showGaugeLevel;
+                        var drawTemp = root.showGaugeTemp;
+                        if (!drawLevel && !drawTemp) {
+                            return;
+                        }
+                        var ringWidth = levelGauge.ringWidth;
 
                         var tempColor = function(c) {
                             var t = Math.max(0, Math.min(1, (c - 30) / 70));
@@ -445,14 +458,16 @@ PlasmoidItem {
                             return Qt.rgba(r / 255, g / 255, b / 255, 1);
                         };
 
-                        ctx.lineCap = "round";
-                        ctx.lineWidth = 1.8;
-                        ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.25);
-                        ctx.beginPath();
-                        ctx.arc(cx, cy, outerR, start, start + sweep, false);
-                        ctx.stroke();
+                        if (drawTemp) {
+                            ctx.lineCap = "round";
+                            ctx.lineWidth = ringWidth;
+                            ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.25);
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, outerR, start, start + sweep, false);
+                            ctx.stroke();
+                        }
 
-                        if (hasTemp) {
+                        if (drawTemp && hasTemp) {
                             var tfrac = Math.max(0, Math.min(1, (levelGauge.shownTemp - 30) / 70));
                             if (tfrac > 0.001) {
                                 var steps = Math.max(2, Math.round(tfrac * 48));
@@ -469,25 +484,27 @@ PlasmoidItem {
                             }
                         }
 
-                        var levelCount = 7 - root.minFanLevel + 1;
-                        var segSweep = sweep / levelCount;
-                        var gapAngle = Math.PI / 10;
-                        var filled = hasLevel ? Math.max(0, Math.min(levelCount, levelGauge.shownLevel - root.minFanLevel + 1)) : 0;
-                        ctx.lineCap = "butt";
-                        ctx.lineWidth = 1.8;
-                        for (var s = 0; s < levelCount; ++s) {
-                            var segStart = start + s * segSweep + gapAngle / 2;
-                            var segEnd = start + (s + 1) * segSweep - gapAngle / 2;
-                            var segFill = Math.max(0, Math.min(1, filled - s));
-                            ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.25);
-                            ctx.beginPath();
-                            ctx.arc(cx, cy, innerR, segStart, segEnd, false);
-                            ctx.stroke();
-                            if (segFill > 0.001) {
-                                ctx.strokeStyle = root.graphAccentColor;
+                        if (drawLevel) {
+                            var levelCount = 7 - root.minFanLevel + 1;
+                            var segSweep = sweep / levelCount;
+                            var gapAngle = Math.PI / 10;
+                            var filled = hasLevel ? Math.max(0, Math.min(levelCount, levelGauge.shownLevel - root.minFanLevel + 1)) : 0;
+                            ctx.lineCap = "butt";
+                            ctx.lineWidth = ringWidth;
+                            for (var s = 0; s < levelCount; ++s) {
+                                var segStart = start + s * segSweep + gapAngle / 2;
+                                var segEnd = start + (s + 1) * segSweep - gapAngle / 2;
+                                var segFill = Math.max(0, Math.min(1, filled - s));
+                                ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.25);
                                 ctx.beginPath();
-                                ctx.arc(cx, cy, innerR, segStart, segStart + (segEnd - segStart) * segFill, false);
+                                ctx.arc(cx, cy, innerR, segStart, segEnd, false);
                                 ctx.stroke();
+                                if (segFill > 0.001) {
+                                    ctx.strokeStyle = root.graphAccentColor;
+                                    ctx.beginPath();
+                                    ctx.arc(cx, cy, innerR, segStart, segStart + (segEnd - segStart) * segFill, false);
+                                    ctx.stroke();
+                                }
                             }
                         }
                     }
@@ -502,10 +519,11 @@ PlasmoidItem {
 
                 PlasmaComponents3.Label {
                     anchors.centerIn: parent
+                    visible: root.showGaugeNumber
                     text: root.effectiveLevel >= 0 ? root.effectiveLevel : "?"
                     color: root.gaugeLevelColor
-                    font.pixelSize: Math.max(8, Math.round(levelGauge.gaugeSize * 0.36))
-                    font.bold: root.boldGauge
+                    font.pixelSize: levelGauge.numberSize
+                    font.bold: root.boldGauge || levelGauge.partCount < 3
                 }
 
                 Rectangle {
