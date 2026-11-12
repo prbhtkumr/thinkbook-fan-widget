@@ -45,6 +45,19 @@ PlasmoidItem {
     readonly property bool boldTemperature: Plasmoid.configuration.boldTemperature === true
     readonly property bool boldGauge: Plasmoid.configuration.boldGauge !== false
     readonly property bool boldLevel: Plasmoid.configuration.boldLevel !== false
+    readonly property bool darkTheme: {
+        var bg = Kirigami.Theme.backgroundColor
+        return (0.2126 * bg.r + 0.7152 * bg.g + 0.0722 * bg.b) < 0.5
+    }
+    readonly property color gaugeLevelColor: {
+        if (fanCurve === "aggressive") {
+            return darkTheme ? "#ffb74d" : "#a35f00"
+        }
+        if (fanCurve === "power-save") {
+            return darkTheme ? "#7fdc9c" : "#1d7a3d"
+        }
+        return Kirigami.Theme.textColor
+    }
     readonly property int compactColumns: {
         var count = 0
         if (showIcon) {
@@ -491,6 +504,7 @@ PlasmoidItem {
                 PlasmaComponents3.Label {
                     anchors.centerIn: parent
                     text: root.effectiveLevel >= 0 ? root.effectiveLevel : "?"
+                    color: root.gaugeLevelColor
                     font.pixelSize: Math.max(8, Math.round(levelGauge.gaugeSize * 0.36))
                     font.bold: root.boldGauge
                 }
