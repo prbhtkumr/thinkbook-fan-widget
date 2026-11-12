@@ -296,24 +296,6 @@ PlasmoidItem {
             anchors.margins: Kirigami.Units.largeSpacing
             spacing: Kirigami.Units.smallSpacing
 
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
-
-                Loader {
-                    visible: root.showIcon
-                    Layout.preferredWidth: root.showIcon ? Kirigami.Units.iconSizes.small : 0
-                    Layout.preferredHeight: root.showIcon ? Kirigami.Units.iconSizes.small : 0
-                    sourceComponent: root.showIcon ? (root.iconSource.indexOf("/") >= 0 ? imageIcon : themeIcon) : null
-                }
-
-                PlasmaComponents3.Label {
-                    text: "ThinkBook Fan"
-                    font.bold: true
-                    Layout.fillWidth: true
-                }
-            }
-
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: statusRow.implicitHeight + Kirigami.Units.largeSpacing * 2
@@ -331,11 +313,15 @@ PlasmoidItem {
                         spacing: 0
 
                         PlasmaComponents3.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
                             text: "Level"
                             font: Kirigami.Theme.smallFont
                             opacity: 0.7
                         }
                         PlasmaComponents3.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
                             text: root.levelLabel
                             font.bold: true
                             font.pixelSize: Math.round(Kirigami.Theme.defaultFont.pixelSize * 1.6)
@@ -347,11 +333,15 @@ PlasmoidItem {
                         spacing: 0
 
                         PlasmaComponents3.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
                             text: "Mode"
                             font: Kirigami.Theme.smallFont
                             opacity: 0.7
                         }
                         PlasmaComponents3.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
                             text: root.modeLabel
                             font.bold: true
                             font.pixelSize: Math.round(Kirigami.Theme.defaultFont.pixelSize * 1.6)
@@ -363,11 +353,15 @@ PlasmoidItem {
                         spacing: 0
 
                         PlasmaComponents3.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
                             text: "Temp"
                             font: Kirigami.Theme.smallFont
                             opacity: 0.7
                         }
                         PlasmaComponents3.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
                             text: root.fanTemp >= 0 ? root.fanTemp + " C" : "N/A"
                             font.bold: true
                             font.pixelSize: Math.round(Kirigami.Theme.defaultFont.pixelSize * 1.6)
@@ -388,29 +382,6 @@ PlasmoidItem {
                 columnSpacing: Kirigami.Units.smallSpacing
 
                 PlasmaComponents3.Button {
-                    id: balancedButton
-                    Layout.fillWidth: true
-                    text: "Balanced"
-                    checkable: true
-                    checked: root.fanCurve === "auto"
-                    font.bold: checked
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: Kirigami.Units.smallSpacing
-                        color: "transparent"
-                        border.width: 2
-                        border.color: Kirigami.Theme.highlightColor
-                        visible: balancedButton.checked
-                    }
-
-                    onClicked: {
-                        root.setCurve("auto")
-                        root.expanded = false
-                    }
-                }
-
-                PlasmaComponents3.Button {
                     id: powerSaveButton
                     Layout.fillWidth: true
                     text: "Power Save"
@@ -429,6 +400,29 @@ PlasmoidItem {
 
                     onClicked: {
                         root.setCurve("power-save")
+                        root.expanded = false
+                    }
+                }
+
+                PlasmaComponents3.Button {
+                    id: balancedButton
+                    Layout.fillWidth: true
+                    text: "Balanced"
+                    checkable: true
+                    checked: root.fanCurve === "auto"
+                    font.bold: checked
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Kirigami.Units.smallSpacing
+                        color: "transparent"
+                        border.width: 2
+                        border.color: Kirigami.Theme.highlightColor
+                        visible: balancedButton.checked
+                    }
+
+                    onClicked: {
+                        root.setCurve("auto")
                         root.expanded = false
                     }
                 }
@@ -506,14 +500,6 @@ PlasmoidItem {
                         }
                     }
                 }
-            }
-
-            PlasmaComponents3.Label {
-                Layout.fillWidth: true
-                text: "A level pins the fan. A curve follows the selected preset."
-                font: Kirigami.Theme.smallFont
-                opacity: 0.7
-                wrapMode: Text.WordWrap
             }
 
             PlasmaComponents3.Label {
