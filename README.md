@@ -67,7 +67,7 @@ Right click the widget and choose Configure.
 - On AC power: curve used while plugged in.
 - Default: curve used on battery.
 - On power save: curve used in power save.
-- Title: choose which items appear in the compact display: icon, level, status, temperature.
+- Title: choose which items appear in the compact display: icon, level, status, temperature. The status and temperature text can each be bold.
 - Icon: a theme icon name such as `cpu`, or a path such as `../icons/fan.svg`. The default is the bundled fan icon. Clearing the field also hides the icon.
 
 The widget writes the minimum level to `/run/thinkbook-fan/min-level` and the curve selection to `/run/thinkbook-fan/curves`. The service reads both within 2 seconds.

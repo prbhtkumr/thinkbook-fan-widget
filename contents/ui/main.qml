@@ -32,6 +32,8 @@ PlasmoidItem {
     readonly property bool showLevel: Plasmoid.configuration.showLevel !== false
     readonly property bool showStatus: Plasmoid.configuration.showStatus !== false
     readonly property bool showTemperature: Plasmoid.configuration.showTemperature !== false
+    readonly property bool boldStatus: Plasmoid.configuration.boldStatus === true
+    readonly property bool boldTemperature: Plasmoid.configuration.boldTemperature === true
     readonly property int compactColumns: {
         var count = 0
         if (showIcon) {
@@ -304,16 +306,20 @@ PlasmoidItem {
             PlasmaComponents3.Label {
                 visible: root.showStatus
                 text: root.modeLabel
-                font: Kirigami.Theme.smallFont
-                opacity: 0.8
+                font.family: Kirigami.Theme.smallFont.family
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                font.bold: root.boldStatus
+                opacity: root.boldStatus ? 1.0 : 0.8
                 Layout.alignment: Qt.AlignHCenter
             }
 
             PlasmaComponents3.Label {
                 visible: root.showTemperature
                 text: root.tempLabel
-                font: Kirigami.Theme.smallFont
-                opacity: 0.8
+                font.family: Kirigami.Theme.smallFont.family
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                font.bold: root.boldTemperature
+                opacity: root.boldTemperature ? 1.0 : 0.8
                 Layout.alignment: Qt.AlignHCenter
             }
         }

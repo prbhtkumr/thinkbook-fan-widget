@@ -38,6 +38,14 @@
             <label>Show the temperature in the compact display.</label>
             <default>true</default>
         </entry>
+        <entry name="boldStatus" type="Bool">
+            <label>Show the status in bold in the compact display.</label>
+            <default>false</default>
+        </entry>
+        <entry name="boldTemperature" type="Bool">
+            <label>Show the temperature in bold in the compact display.</label>
+            <default>false</default>
+        </entry>
         <entry name="iconSource" type="String">
             <label>Icon name or path for the compact display.</label>
             <default>../icons/fan.svg</default>
