@@ -15,28 +15,11 @@ KCM.SimpleKCM {
             text: "Show icon"
         }
 
-        QQC2.ComboBox {
-            id: iconPreset
-            Layout.fillWidth: true
-            Kirigami.FormData.label: "Preset:"
-            textRole: "label"
-            model: [
-                { "label": "Fan (bundled)", "value": "../icons/fan.svg" },
-                { "label": "CPU", "value": "cpu" },
-                { "label": "Temperature", "value": "temperature-normal-symbolic" },
-                { "label": "System monitor", "value": "utilities-system-monitor" }
-            ]
-            onActivated: (index) => {
-                iconField.text = model[index]["value"]
-                showIconCheck.checked = true
-            }
-        }
-
         QQC2.TextField {
             id: iconField
             Layout.fillWidth: true
             Kirigami.FormData.label: "Source:"
-            placeholderText: "cpu or ../icons/fan.svg"
+            placeholderText: "Theme icon name or /path/to/icon.svg"
         }
 
         QQC2.Label {
