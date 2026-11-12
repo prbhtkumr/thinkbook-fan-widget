@@ -52,7 +52,7 @@ KCM.SimpleKCM {
             Kirigami.FormData.label: "On AC power:"
             textRole: "label"
             model: [
-                { "label": "Auto", "value": "auto" },
+                { "label": "Balanced", "value": "auto" },
                 { "label": "Power Save", "value": "power-save" },
                 { "label": "Aggressive", "value": "aggressive" }
             ]
@@ -68,7 +68,7 @@ KCM.SimpleKCM {
             Kirigami.FormData.label: "Default:"
             textRole: "label"
             model: [
-                { "label": "Auto", "value": "auto" },
+                { "label": "Balanced", "value": "auto" },
                 { "label": "Power Save", "value": "power-save" },
                 { "label": "Aggressive", "value": "aggressive" }
             ]
@@ -84,7 +84,7 @@ KCM.SimpleKCM {
             Kirigami.FormData.label: "On power save:"
             textRole: "label"
             model: [
-                { "label": "Auto", "value": "auto" },
+                { "label": "Balanced", "value": "auto" },
                 { "label": "Power Save", "value": "power-save" },
                 { "label": "Aggressive", "value": "aggressive" }
             ]

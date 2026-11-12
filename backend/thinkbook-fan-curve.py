@@ -244,11 +244,12 @@ def ensure_state_dir():
         pass
 
 
-def write_state(level, mode, temp, ac, pin, curve, control=None):
+def write_state(level, mode, temp, ac, pin, curve, state, control=None):
     data = {
         "level": level,
         "mode": mode,
         "curve": curve,
+        "state": state,
         "temp": None if temp is None else round(temp),
         "control": None if control is None else round(control),
         "ac": bool(ac),
@@ -367,12 +368,13 @@ def main():
             temp,
             ac,
             effective_pin,
-            None if pin_active else curve_name,
+            curve_name,
+            state_name,
             control_temp,
         )
         time.sleep(POLL_SECONDS)
 
-    write_state(None, "off", last_temp, on_ac(), None, None, None)
+    write_state(None, "off", last_temp, on_ac(), None, None, None, None)
     try:
         with open(FAN, "w") as fh:
             fh.write("level auto\n")

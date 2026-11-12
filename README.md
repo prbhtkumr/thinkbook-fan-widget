@@ -36,15 +36,16 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 - Left click: open the level menu.
 - Scroll up or down over the widget: change the fan level one step.
 - Pick 3 to 7: pin that level.
-- Pick Auto: remove the pin and let the AC/battery curve run.
+- Pick a curve: follow that curve and remove any pin.
+- Pick Follow curve: remove the pin without changing the curve.
 
-The compact display shows `L<level>` and `AC`, `BAT`, or `PIN`. The tooltip shows the package temperature.
+The compact display shows `L<level>` and `AC`, `BAT`, `PWR`, or `PIN`. The tooltip shows the package temperature.
 
 ## Curves
 
 Three presets are available:
 
-- Auto: balanced response
+- Balanced: balanced response
 - Power Save: quieter, with higher temperature thresholds
 - Aggressive: earlier ramp and higher levels
 
@@ -54,7 +55,7 @@ In Settings, choose which preset applies to each power state:
 - Default, meaning on battery
 - On power save, meaning the platform profile is low-power or the battery is at or below 20 percent
 
-The active curve is shown in the popup and tooltip. The compact display shows `AC`, `BAT`, or `PWR`.
+The active curve is shown in the popup and tooltip. The popup curve buttons change the curve for the current power state and remove any manual pin. The compact display shows `AC`, `BAT`, or `PWR`.
 
 ## Settings
 
@@ -80,6 +81,8 @@ ac=auto
 default=auto
 power-save=power-save
 ```
+
+Balanced is stored as `auto` in this file.
 
 The service uses the median of the last three temperature samples for curve decisions and moves the fan one level per poll. A single short spike does not move the fan. The raw temperature is still reported in the state and shown in the widget.
 
