@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls as QQC2
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents3
@@ -23,6 +24,11 @@ PlasmoidItem {
     property string configCurveAc: Plasmoid.configuration.curveAc || "auto"
     property string configCurveDefault: Plasmoid.configuration.curveDefault || "auto"
     property string configCurvePowerSave: Plasmoid.configuration.curvePowerSave || "power-save"
+    property string configTemperatureInput: Plasmoid.configuration.temperatureInput || "max-all"
+    property string fanInput: "max-all"
+    property var tempHistory: []
+    property int historyLimit: 150
+    property int lastHistoryUpdated: 0
     readonly property int minFanLevel: Math.max(3, Math.min(7, configMinLevel))
     readonly property string iconSource: {
         var source = Plasmoid.configuration.iconSource
@@ -104,14 +110,24 @@ PlasmoidItem {
         }
         return Qt.locale().measurementSystem === Locale.ImperialUSSystem
     }
-    readonly property string tempLabel: {
-        if (fanTemp < 0) {
-            return "N/A"
-        }
+    function tempUnitLabel(celsius) {
         if (useFahrenheit) {
-            return Math.round(fanTemp * 9 / 5 + 32) + " °F"
+            return Math.round(celsius * 9 / 5 + 32) + " °F"
         }
-        return Math.round(fanTemp) + " °C"
+        return Math.round(celsius) + " °C"
+    }
+    readonly property string tempLabel: fanTemp < 0 ? "N/A" : tempUnitLabel(fanTemp)
+    readonly property string inputLabel: {
+        if (fanInput === "max-core") {
+            return "Maximum core"
+        }
+        if (fanInput === "avg-core") {
+            return "Average core"
+        }
+        if (fanInput === "package") {
+            return "Package"
+        }
+        return "Maximum of all sensors"
     }
 
     function parseState(text) {
@@ -120,6 +136,7 @@ PlasmoidItem {
             fanMode = "off"
             fanCurve = ""
             fanState = "default"
+            fanInput = validInput(configTemperatureInput)
             fanTemp = -1
             pinnedLevel = -1
             pendingLevel = -1
@@ -133,6 +150,7 @@ PlasmoidItem {
             fanMode = state.mode || "off"
             fanCurve = state.curve || ""
             fanState = state.state || (state.mode === "power-save" ? "power-save" : (state.ac ? "ac" : "default"))
+            fanInput = state.input || validInput(configTemperatureInput)
             fanTemp = (typeof state.temp === "number") ? state.temp : -1
             pinnedLevel = (typeof state.pin === "number") ? state.pin : -1
 
@@ -141,6 +159,23 @@ PlasmoidItem {
                 pendingUntil = 0
             } else if (pendingLevel >= 0 && Date.now() > pendingUntil) {
                 pendingLevel = -1
+            }
+
+            if (typeof state.temp === "number") {
+                var stamp = state.updated || 0
+                if (stamp !== lastHistoryUpdated) {
+                    lastHistoryUpdated = stamp
+                    var controlTemp = (typeof state.control === "number") ? state.control : state.temp
+                    var history = tempHistory.slice()
+                    history.push({ "t": stamp, "raw": state.temp, "control": controlTemp })
+                    while (history.length > historyLimit) {
+                        history.shift()
+                    }
+                    tempHistory = history
+                    if (graphCanvas) {
+                        graphCanvas.requestPaint()
+                    }
+                }
             }
         } catch (error) {
             // Keep the last good state if the file was read mid-write.
@@ -185,6 +220,26 @@ PlasmoidItem {
         runCommand("sh -c 'printf \"%s\" " + minFanLevel + " > /run/thinkbook-fan/min-level'")
     }
 
+    function validInput(name) {
+        if (name === "max-core" || name === "avg-core" || name === "package") {
+            return name
+        }
+        return "max-all"
+    }
+
+    function writeTemperatureInput() {
+        var mode = validInput(configTemperatureInput)
+        runCommand("sh -c 'printf \"%s\" " + mode + " > /run/thinkbook-fan/input'")
+    }
+
+    function resetHistory() {
+        tempHistory = []
+        lastHistoryUpdated = 0
+        if (graphCanvas) {
+            graphCanvas.requestPaint()
+        }
+    }
+
     function validCurve(name) {
         if (name === "power-save" || name === "aggressive") {
             return name
@@ -213,11 +268,16 @@ PlasmoidItem {
     Component.onCompleted: {
         Qt.callLater(root.writeMinLevel)
         Qt.callLater(root.writeCurveConfig)
+        Qt.callLater(root.writeTemperatureInput)
     }
     onConfigMinLevelChanged: writeMinLevel()
     onConfigCurveAcChanged: writeCurveConfig()
     onConfigCurveDefaultChanged: writeCurveConfig()
     onConfigCurvePowerSaveChanged: writeCurveConfig()
+    onConfigTemperatureInputChanged: {
+        writeTemperatureInput()
+        resetHistory()
+    }
 
     P5Support.DataSource {
         id: stateSource
@@ -343,15 +403,42 @@ PlasmoidItem {
 
     fullRepresentation: Item {
         Layout.preferredWidth: Kirigami.Units.gridUnit * 18
-        Layout.preferredHeight: column.implicitHeight + Kirigami.Units.largeSpacing * 2
+        Layout.preferredHeight: outer.implicitHeight + Kirigami.Units.largeSpacing * 2
 
         ColumnLayout {
-            id: column
+            id: outer
             anchors.fill: parent
             anchors.margins: Kirigami.Units.largeSpacing
             spacing: Kirigami.Units.smallSpacing
 
-            Rectangle {
+            QQC2.TabBar {
+                id: tabBar
+                Layout.fillWidth: true
+
+                QQC2.TabButton {
+                    text: "Control"
+                }
+
+                QQC2.TabButton {
+                    text: "Graph"
+                }
+
+                onCurrentIndexChanged: {
+                    if (currentIndex === 1 && graphCanvas) {
+                        graphCanvas.requestPaint()
+                    }
+                }
+            }
+
+            StackLayout {
+                Layout.fillWidth: true
+                currentIndex: tabBar.currentIndex
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: statusRow.implicitHeight + Kirigami.Units.largeSpacing * 2
                 radius: Kirigami.Units.smallSpacing
@@ -554,6 +641,152 @@ PlasmoidItem {
                 wrapMode: Text.WordWrap
                 color: Kirigami.Theme.negativeTextColor
                 font: Kirigami.Theme.smallFont
+            }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        PlasmaComponents3.Label {
+                            text: "Temperature history"
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+
+                        PlasmaComponents3.Label {
+                            text: root.tempLabel
+                        }
+                    }
+
+                    PlasmaComponents3.Label {
+                        text: root.inputLabel + ", last 5 min"
+                        font: Kirigami.Theme.smallFont
+                        opacity: 0.7
+                    }
+
+                    Canvas {
+                        id: graphCanvas
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Kirigami.Units.gridUnit * 7
+                        onWidthChanged: requestPaint()
+                        onHeightChanged: requestPaint()
+
+                        onPaint: {
+                            var ctx = getContext("2d");
+                            ctx.clearRect(0, 0, width, height);
+                            var w = width;
+                            var h = height;
+                            if (w <= 0 || h <= 0) {
+                                return;
+                            }
+
+                            var textColor = Kirigami.Theme.textColor;
+                            ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.12);
+                            ctx.lineWidth = 1;
+                            for (var line = 0; line <= 3; ++line) {
+                                var gy = Math.round(h * line / 3) + 0.5;
+                                ctx.beginPath();
+                                ctx.moveTo(0, gy);
+                                ctx.lineTo(w, gy);
+                                ctx.stroke();
+                            }
+
+                            var data = root.tempHistory;
+                            if (data.length < 2) {
+                                ctx.fillStyle = textColor;
+                                ctx.globalAlpha = 0.6;
+                                ctx.font = "12px sans-serif";
+                                ctx.textAlign = "center";
+                                ctx.textBaseline = "middle";
+                                ctx.fillText("Collecting data...", w / 2, h / 2);
+                                ctx.globalAlpha = 1;
+                                return;
+                            }
+
+                            var minC = 30;
+                            var maxC = 100;
+                            var yFor = function(c) {
+                                return h - ((c - minC) / (maxC - minC)) * h;
+                            };
+                            var xFor = function(index) {
+                                return (index / Math.max(1, root.historyLimit - 1)) * w;
+                            };
+
+                            ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.35);
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            for (var i = 0; i < data.length; ++i) {
+                                var ry = yFor(data[i].raw);
+                                if (i === 0) {
+                                    ctx.moveTo(xFor(i), ry);
+                                } else {
+                                    ctx.lineTo(xFor(i), ry);
+                                }
+                            }
+                            ctx.stroke();
+
+                            ctx.strokeStyle = Kirigami.Theme.highlightColor;
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            for (var j = 0; j < data.length; ++j) {
+                                var cy = yFor(data[j].control);
+                                if (j === 0) {
+                                    ctx.moveTo(xFor(j), cy);
+                                } else {
+                                    ctx.lineTo(xFor(j), cy);
+                                }
+                            }
+                            ctx.stroke();
+
+                            ctx.fillStyle = textColor;
+                            ctx.globalAlpha = 0.6;
+                            ctx.font = "10px sans-serif";
+                            ctx.textAlign = "left";
+                            ctx.textBaseline = "top";
+                            ctx.fillText(root.tempUnitLabel(100), 4, 2);
+                            ctx.textBaseline = "bottom";
+                            ctx.fillText(root.tempUnitLabel(30), 4, h - 2);
+                            ctx.globalAlpha = 1;
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Kirigami.Units.smallSpacing
+
+                        Rectangle {
+                            Layout.preferredWidth: 14
+                            Layout.preferredHeight: 2
+                            color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.35)
+                        }
+
+                        PlasmaComponents3.Label {
+                            text: "Raw"
+                            font: Kirigami.Theme.smallFont
+                            opacity: 0.8
+                        }
+
+                        Item {
+                            Layout.fillWidth: true
+                        }
+
+                        Rectangle {
+                            Layout.preferredWidth: 14
+                            Layout.preferredHeight: 2
+                            color: Kirigami.Theme.highlightColor
+                        }
+
+                        PlasmaComponents3.Label {
+                            text: "Smoothed"
+                            font: Kirigami.Theme.smallFont
+                            opacity: 0.8
+                        }
+                    }
+                }
             }
         }
     }

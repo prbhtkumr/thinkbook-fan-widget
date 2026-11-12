@@ -33,14 +33,14 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 
 ## Use
 
-- Left click: open the level menu.
+- Left click: open the popup. Use the Control and Graph tabs.
 - Scroll up or down over the widget: change the fan level one step.
 - Pick 3 to 7: pin that level.
 - Pick a curve: follow that curve and remove any pin.
 
 When a level is pinned, the curve buttons lose their highlight. The pinned level is the only active control.
 
-The compact title can show the icon, level, status, and temperature. The tooltip shows the package temperature in the selected unit.
+The compact title can show the icon, level, status, and temperature. The tooltip shows the selected temperature in the selected unit.
 
 ## Curves
 
@@ -58,18 +58,29 @@ In Settings, choose which preset applies to each power state:
 
 The active curve is shown in the popup and tooltip. The popup curve buttons change the curve for the current power state and remove any manual pin. The compact display shows the status as `AC`, `BAT`, or `PWR` when status is enabled.
 
+## Graph
+
+The Graph tab shows the last 5 minutes of the selected temperature input. The dim line is the raw reading. The highlighted line is the smoothed value used by the curve. The history resets when you change the input.
+
 ## Settings
 
 Right click the widget and choose Configure. The settings are grouped into pages:
 
-- Fan: minimum fan level, 3 to 7. This clamps manual pins and every curve.
+- Fan: minimum fan level, 3 to 7, and the temperature input source. The level clamps manual pins and every curve.
 - Curves: choose the preset for AC power, Default, and Power save.
 - Appearance: temperature unit, plus Show and Bold options for the title level, status, and temperature.
 - Icon: show or hide the title icon, choose a preset, or enter a theme icon name or SVG path. Clearing the field hides the icon.
 
+The temperature input selects what the curve and graph use:
+
+- Maximum core: highest individual core.
+- Average core: average of all core sensors.
+- Package: package sensor.
+- Maximum of all sensors: highest of cores, package, and TCPU. This is the default.
+
 The temperature unit defaults to the system locale. A changed unit is saved.
 
-The widget writes the minimum level to `/run/thinkbook-fan/min-level` and the curve selection to `/run/thinkbook-fan/curves`. The service reads both within 2 seconds.
+The widget writes the minimum level to `/run/thinkbook-fan/min-level`, the curve selection to `/run/thinkbook-fan/curves`, and the input selection to `/run/thinkbook-fan/input`. The service reads them within 2 seconds.
 
 ## How it works
 
@@ -85,7 +96,9 @@ power-save=power-save
 
 Balanced is stored as `auto` in this file.
 
-The service uses the median of the last three temperature samples for curve decisions and moves the fan one level per poll. A single short spike does not move the fan. The raw temperature is still reported in the state and shown in the widget.
+The service uses the selected temperature input, takes the median of the last three samples for curve decisions, and moves the fan one level per poll. A single short spike does not move the fan. The raw and smoothed values are reported in the state and used by the graph.
+
+The widget keeps 150 samples for the graph, about 5 minutes at the 2 second poll.
 
 The service creates `/run/thinkbook-fan` as group writable for the `users` group. If your user is not in that group, change the group in `backend/thinkbook-fan-curve.py` or adjust the directory after the service starts.
 

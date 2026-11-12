@@ -26,6 +26,8 @@ PIN_FILE = os.path.join(STATE_DIR, "pin")
 STATE_FILE = os.path.join(STATE_DIR, "state")
 MIN_LEVEL_FILE = os.path.join(STATE_DIR, "min-level")
 CURVE_FILE = os.path.join(STATE_DIR, "curves")
+INPUT_FILE = os.path.join(STATE_DIR, "input")
+INPUT_MODES = ("max-core", "avg-core", "package", "max-all")
 MIN_LEVEL = 3
 POLL_SECONDS = 2
 REFRESH_SECONDS = 30
@@ -117,6 +119,13 @@ def read_curve_config():
     return config
 
 
+def read_input_mode():
+    value = read_string(INPUT_FILE)
+    if value in INPUT_MODES:
+        return value
+    return "max-all"
+
+
 def battery_capacity():
     try:
         supplies = os.listdir(POWER_SUPPLY)
@@ -149,15 +158,10 @@ def power_state(ac):
     return "default"
 
 
-def read_temp_c():
-    values = []
-    for path in (
-        "/sys/class/thermal/thermal_zone7/temp",  # x86_pkg_temp
-        "/sys/class/thermal/thermal_zone8/temp",  # TCPU (DPTF)
-    ):
-        millideg = read_int(path)
-        if millideg is not None:
-            values.append(millideg / 1000.0)
+def read_temperatures():
+    cores = []
+    package = None
+    tcpu = None
 
     hwmon_root = "/sys/class/hwmon"
     try:
@@ -179,9 +183,44 @@ def read_temp_c():
         for entry in entries:
             if entry.startswith("temp") and entry.endswith("_input"):
                 millideg = read_int(os.path.join(base, entry))
-                if millideg is not None:
-                    values.append(millideg / 1000.0)
-    return max(values) if values else None
+                if millideg is None:
+                    continue
+                value = millideg / 1000.0
+                if entry == "temp1_input":
+                    package = value if package is None else max(package, value)
+                else:
+                    cores.append(value)
+
+    pkg_zone = read_int("/sys/class/thermal/thermal_zone7/temp")
+    if pkg_zone is not None:
+        value = pkg_zone / 1000.0
+        package = value if package is None else max(package, value)
+
+    tcpu_zone = read_int("/sys/class/thermal/thermal_zone8/temp")
+    if tcpu_zone is not None:
+        tcpu = tcpu_zone / 1000.0
+
+    return {"cores": cores, "package": package, "tcpu": tcpu}
+
+
+def select_temp(mode, temps):
+    cores = temps["cores"]
+    package = temps["package"]
+    tcpu = temps["tcpu"]
+    values = list(cores)
+    if package is not None:
+        values.append(package)
+    if tcpu is not None:
+        values.append(tcpu)
+    max_all = max(values) if values else None
+
+    if mode == "max-core" and cores:
+        return max(cores)
+    if mode == "avg-core" and cores:
+        return sum(cores) / len(cores)
+    if mode == "package" and package is not None:
+        return package
+    return max_all
 
 
 def on_ac():
@@ -244,12 +283,13 @@ def ensure_state_dir():
         pass
 
 
-def write_state(level, mode, temp, ac, pin, curve, state, control=None):
+def write_state(level, mode, temp, ac, pin, curve, state, control=None, input_name=None):
     data = {
         "level": level,
         "mode": mode,
         "curve": curve,
         "state": state,
+        "input": input_name,
         "temp": None if temp is None else round(temp),
         "control": None if control is None else round(control),
         "ac": bool(ac),
@@ -286,10 +326,16 @@ def main():
     last_ac = None
     last_write = 0.0
     last_temp = None
+    last_input_mode = None
     temp_history = []
 
     while not stopping:
-        temp = read_temp_c()
+        input_mode = read_input_mode()
+        if input_mode != last_input_mode:
+            temp_history = []
+            last_input_mode = input_mode
+
+        temp = select_temp(input_mode, read_temperatures())
         if temp is None:
             time.sleep(POLL_SECONDS)
             continue
@@ -346,7 +392,7 @@ def main():
                     f"{time.strftime('%H:%M:%S')} temp={temp:.0f}C "
                     f"control={control_temp:.0f}C ac={int(ac)} "
                     f"level {current}->{target}{pin_note} "
-                    f"state={state_name} curve={curve_name}",
+                    f"state={state_name} curve={curve_name} input={input_mode}",
                     flush=True,
                 )
                 current = target
@@ -371,10 +417,11 @@ def main():
             curve_name,
             state_name,
             control_temp,
+            input_mode,
         )
         time.sleep(POLL_SECONDS)
 
-    write_state(None, "off", last_temp, on_ac(), None, None, None, None)
+    write_state(None, "off", last_temp, on_ac(), None, None, None, None, None)
     try:
         with open(FAN, "w") as fh:
             fh.write("level auto\n")
