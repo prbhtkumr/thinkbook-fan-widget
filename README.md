@@ -67,9 +67,13 @@ The active curve is shown in the popup and tooltip. The popup curve buttons chan
 
 ## Graph
 
+![Graph](docs/graph.png)
+
 The Graph page shows the configured history window. The default is 60 seconds. The dim line is the raw reading and the highlighted line is the smoothed value used by the curve. Either line can be hidden, and each can be solid, dashed, or dotted. The guide lines, peak line, legend, and an area fill under the smoothed line can also be turned off or on. The history resets when you change the input.
 
 ## Settings
+
+![Appearance](docs/appearance.png)
 
 Right click the widget and choose Configure. The settings are grouped into pages:
 
