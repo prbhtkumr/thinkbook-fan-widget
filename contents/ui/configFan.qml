@@ -9,14 +9,12 @@ KCM.SimpleKCM {
     id: page
 
     property alias cfg_minLevel: levelSpin.value
-    property string cfg_controlSource: "curve"
     property string cfg_temperatureInput: "max-all"
     property string cfg_curveAc: "auto"
     property string cfg_curveDefault: "auto"
     property string cfg_curvePowerSave: "power-save"
     property bool initialized: false
     property int minWriteSeq: 0
-    property int sourceWriteSeq: 0
 
     readonly property var curveModel: [
         { "label": "Balanced", "value": "auto" },
@@ -24,7 +22,6 @@ KCM.SimpleKCM {
         { "label": "Aggressive", "value": "aggressive" }
     ]
 
-    onCfg_controlSourceChanged: page.syncCombo(controlSourceBox, cfg_controlSource)
     onCfg_temperatureInputChanged: page.syncCombo(inputBox, cfg_temperatureInput)
     onCfg_curveAcChanged: page.syncCombo(curveAcBox, cfg_curveAc)
     onCfg_curveDefaultChanged: page.syncCombo(curveDefaultBox, cfg_curveDefault)
@@ -33,11 +30,6 @@ KCM.SimpleKCM {
     function writeMinLevel(level) {
         page.minWriteSeq += 1
         minWriter.connectSource("sh -c 'printf \"%s\" " + level + " > /run/thinkbook-fan/min-level' # " + page.minWriteSeq)
-    }
-
-    function writeSource(source) {
-        page.sourceWriteSeq += 1
-        sourceWriter.connectSource("sh -c 'printf \"%s\" " + source + " > /run/thinkbook-fan/source' # " + page.sourceWriteSeq)
     }
 
     function syncCombo(combo, value) {
@@ -58,14 +50,7 @@ KCM.SimpleKCM {
         onNewData: (source, data) => Qt.callLater(() => minWriter.disconnectSource(source))
     }
 
-    P5Support.DataSource {
-        id: sourceWriter
-        engine: "executable"
-        onNewData: (source, data) => Qt.callLater(() => sourceWriter.disconnectSource(source))
-    }
-
     Component.onCompleted: {
-        page.syncCombo(controlSourceBox, cfg_controlSource)
         page.syncCombo(inputBox, cfg_temperatureInput)
         page.syncCombo(curveAcBox, cfg_curveAc)
         page.syncCombo(curveDefaultBox, cfg_curveDefault)
@@ -74,39 +59,6 @@ KCM.SimpleKCM {
     }
 
     Kirigami.FormLayout {
-        QQC2.Label {
-            Kirigami.FormData.isSection: true
-            text: "Fan control"
-        }
-
-        QQC2.ComboBox {
-            id: controlSourceBox
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 15
-            implicitWidth: Kirigami.Units.gridUnit * 15
-            Kirigami.FormData.label: "Fan control:"
-            textRole: "label"
-            model: [
-                { "label": "Service curves", "value": "curve" },
-                { "label": "Firmware default", "value": "firmware" }
-            ]
-            onCurrentIndexChanged: {
-                if (page.initialized && currentIndex >= 0 && currentIndex < model.length) {
-                    cfg_controlSource = model[currentIndex]["value"]
-                    page.writeSource(cfg_controlSource)
-                }
-            }
-        }
-
-        QQC2.Label {
-            Layout.fillWidth: true
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 26
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 26
-            text: "Firmware default hands the fan to the laptop and ignores the curves and the minimum level. A manual pin still overrides it, and unpinning returns control to firmware."
-            font: Kirigami.Theme.smallFont
-            opacity: 0.7
-            wrapMode: Text.WordWrap
-        }
-
         QQC2.Label {
             Kirigami.FormData.isSection: true
             text: "Fan level"
