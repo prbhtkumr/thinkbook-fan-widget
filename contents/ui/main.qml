@@ -31,6 +31,14 @@ PlasmoidItem {
     property var graphCanvasItem: null
     readonly property int graphDuration: Math.max(10, Math.min(900, Plasmoid.configuration.graphDuration || 60))
     readonly property color graphAccentColor: Qt.lighter(Kirigami.Theme.highlightColor, 1.4)
+    readonly property bool graphShowRaw: Plasmoid.configuration.graphShowRaw !== false
+    readonly property bool graphShowSmoothed: Plasmoid.configuration.graphShowSmoothed !== false
+    readonly property bool graphShowGuides: Plasmoid.configuration.graphShowGuides !== false
+    readonly property bool graphShowPeak: Plasmoid.configuration.graphShowPeak !== false
+    readonly property bool graphShowLegend: Plasmoid.configuration.graphShowLegend !== false
+    readonly property bool graphFill: Plasmoid.configuration.graphFill === true
+    readonly property string graphRawStyle: validGraphStyle(Plasmoid.configuration.graphRawStyle, "dashed")
+    readonly property string graphSmoothStyle: validGraphStyle(Plasmoid.configuration.graphSmoothStyle, "solid")
     readonly property int minFanLevel: Math.max(3, Math.min(7, configMinLevel))
     readonly property string iconSource: {
         var source = Plasmoid.configuration.iconSource
@@ -249,6 +257,10 @@ PlasmoidItem {
     function resetHistory() {
         tempHistory = []
         lastHistoryUpdated = 0
+        refreshGraph()
+    }
+
+    function refreshGraph() {
         if (graphCanvasItem) {
             graphCanvasItem.requestPaint()
         }
@@ -259,6 +271,32 @@ PlasmoidItem {
             return name
         }
         return "auto"
+    }
+
+    function validGraphStyle(value, fallback) {
+        if (value === "solid" || value === "dashed" || value === "dotted") {
+            return value
+        }
+        return fallback
+    }
+
+    function legendSegments(style) {
+        if (style === "solid") {
+            return [{ "width": 14, "height": 2, "radius": 0 }]
+        }
+        if (style === "dashed") {
+            return [
+                { "width": 4, "height": 2, "radius": 0 },
+                { "width": 4, "height": 2, "radius": 0 },
+                { "width": 4, "height": 2, "radius": 0 }
+            ]
+        }
+        return [
+            { "width": 2, "height": 2, "radius": 1 },
+            { "width": 2, "height": 2, "radius": 1 },
+            { "width": 2, "height": 2, "radius": 1 },
+            { "width": 2, "height": 2, "radius": 1 }
+        ]
     }
 
     function writeCurveConfig() {
@@ -301,10 +339,16 @@ PlasmoidItem {
             }
         }
         tempHistory = trimmed
-        if (graphCanvasItem) {
-            graphCanvasItem.requestPaint()
-        }
+        refreshGraph()
     }
+    onGraphShowRawChanged: refreshGraph()
+    onGraphShowSmoothedChanged: refreshGraph()
+    onGraphShowGuidesChanged: refreshGraph()
+    onGraphShowPeakChanged: refreshGraph()
+    onGraphShowLegendChanged: refreshGraph()
+    onGraphFillChanged: refreshGraph()
+    onGraphRawStyleChanged: refreshGraph()
+    onGraphSmoothStyleChanged: refreshGraph()
 
     P5Support.DataSource {
         id: stateSource
@@ -907,7 +951,7 @@ PlasmoidItem {
                             var textColor = Kirigami.Theme.textColor;
                             var minC = 30;
                             var maxC = 100;
-                            var padLeft = 36;
+                            var padLeft = root.graphShowGuides ? 36 : 8;
                             var padRight = 8;
                             var padTop = 8;
                             var padBottom = 4;
@@ -917,15 +961,36 @@ PlasmoidItem {
                                 return padTop + plotH - ((c - minC) / (maxC - minC)) * plotH;
                             };
 
-                            var drawDashedLine = function(points, dash, gap) {
+                            var drawStyledLine = function(points, style, width, dash, gap) {
+                                if (points.length < 2) {
+                                    return;
+                                }
+                                ctx.lineWidth = width;
+                                if (style === "solid") {
+                                    ctx.lineCap = "round";
+                                    ctx.beginPath();
+                                    for (var p = 0; p < points.length; ++p) {
+                                        if (p === 0) {
+                                            ctx.moveTo(points[p].x, points[p].y);
+                                        } else {
+                                            ctx.lineTo(points[p].x, points[p].y);
+                                        }
+                                    }
+                                    ctx.stroke();
+                                    return;
+                                }
+                                var dotted = style === "dotted";
+                                var onLength = dotted ? 1 : dash;
+                                var offLength = gap;
                                 var drawing = true;
-                                var remaining = dash;
+                                var remaining = onLength;
+                                ctx.lineCap = dotted ? "round" : "butt";
                                 ctx.beginPath();
-                                for (var p = 1; p < points.length; ++p) {
-                                    var x0 = points[p - 1].x;
-                                    var y0 = points[p - 1].y;
-                                    var x1 = points[p].x;
-                                    var y1 = points[p].y;
+                                for (var i = 1; i < points.length; ++i) {
+                                    var x0 = points[i - 1].x;
+                                    var y0 = points[i - 1].y;
+                                    var x1 = points[i].x;
+                                    var y1 = points[i].y;
                                     var dx = x1 - x0;
                                     var dy = y1 - y0;
                                     var len = Math.sqrt(dx * dx + dy * dy);
@@ -945,7 +1010,7 @@ PlasmoidItem {
                                         remaining -= step;
                                         if (remaining <= 0.001) {
                                             drawing = !drawing;
-                                            remaining = drawing ? dash : gap;
+                                            remaining = drawing ? onLength : offLength;
                                         }
                                     }
                                 }
@@ -962,23 +1027,25 @@ PlasmoidItem {
                                 ctx.stroke();
                             };
 
-                            var guides = [40, 60, 80, 100];
-                            ctx.font = "10px sans-serif";
-                            ctx.textAlign = "right";
-                            ctx.textBaseline = "middle";
-                            for (var g = 0; g < guides.length; ++g) {
-                                var guideY = Math.round(yFor(guides[g])) + 0.5;
-                                ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.12);
-                                ctx.lineWidth = 1;
-                                ctx.beginPath();
-                                ctx.moveTo(padLeft, guideY);
-                                ctx.lineTo(w - padRight, guideY);
-                                ctx.stroke();
+                            if (root.graphShowGuides) {
+                                var guides = [40, 60, 80, 100];
+                                ctx.font = "10px sans-serif";
+                                ctx.textAlign = "right";
+                                ctx.textBaseline = "middle";
+                                for (var g = 0; g < guides.length; ++g) {
+                                    var guideY = Math.round(yFor(guides[g])) + 0.5;
+                                    ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.12);
+                                    ctx.lineWidth = 1;
+                                    ctx.beginPath();
+                                    ctx.moveTo(padLeft, guideY);
+                                    ctx.lineTo(w - padRight, guideY);
+                                    ctx.stroke();
 
-                                ctx.fillStyle = textColor;
-                                ctx.globalAlpha = 0.6;
-                                ctx.fillText(root.tempUnitLabel(guides[g]), padLeft - 6, Math.max(padTop, Math.min(h - padBottom, guideY)));
-                                ctx.globalAlpha = 1;
+                                    ctx.fillStyle = textColor;
+                                    ctx.globalAlpha = 0.6;
+                                    ctx.fillText(root.tempUnitLabel(guides[g]), padLeft - 6, Math.max(padTop, Math.min(h - padBottom, guideY)));
+                                    ctx.globalAlpha = 1;
+                                }
                             }
 
                             var data = root.tempHistory;
@@ -1000,9 +1067,11 @@ PlasmoidItem {
                             };
 
                             var rawPoints = [];
+                            var smoothPoints = [];
                             var maxRaw = -Infinity;
                             for (var i = 0; i < data.length; ++i) {
                                 rawPoints.push({ "x": xFor(data[i].t), "y": yFor(data[i].raw) });
+                                smoothPoints.push({ "x": xFor(data[i].t), "y": yFor(data[i].control) });
                                 if (data[i].raw > maxRaw) {
                                     maxRaw = data[i].raw;
                                 }
@@ -1013,25 +1082,30 @@ PlasmoidItem {
                             ctx.rect(padLeft, padTop, plotW, plotH);
                             ctx.clip();
 
-                            ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.45);
-                            ctx.lineWidth = 1;
-                            drawDashedLine(rawPoints, 3, 3);
-
-                            ctx.strokeStyle = root.graphAccentColor;
-                            ctx.lineWidth = 2;
-                            ctx.beginPath();
-                            for (var j = 0; j < data.length; ++j) {
-                                var cy = yFor(data[j].control);
-                                if (j === 0) {
-                                    ctx.moveTo(xFor(data[j].t), cy);
-                                } else {
-                                    ctx.lineTo(xFor(data[j].t), cy);
+                            if (root.graphFill && root.graphShowSmoothed && smoothPoints.length > 1) {
+                                ctx.beginPath();
+                                ctx.moveTo(smoothPoints[0].x, padTop + plotH);
+                                for (var f = 0; f < smoothPoints.length; ++f) {
+                                    ctx.lineTo(smoothPoints[f].x, smoothPoints[f].y);
                                 }
+                                ctx.lineTo(smoothPoints[smoothPoints.length - 1].x, padTop + plotH);
+                                ctx.closePath();
+                                ctx.fillStyle = Qt.rgba(root.graphAccentColor.r, root.graphAccentColor.g, root.graphAccentColor.b, 0.16);
+                                ctx.fill();
                             }
-                            ctx.stroke();
+
+                            if (root.graphShowRaw) {
+                                ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.55);
+                                drawStyledLine(rawPoints, root.graphRawStyle, 1.4, 4, 3);
+                            }
+
+                            if (root.graphShowSmoothed) {
+                                ctx.strokeStyle = root.graphAccentColor;
+                                drawStyledLine(smoothPoints, root.graphSmoothStyle, 2, 6, 4);
+                            }
                             ctx.restore();
 
-                            if (maxRaw > -Infinity) {
+                            if (root.graphShowPeak && maxRaw > -Infinity) {
                                 var peakY = Math.round(yFor(maxRaw)) + 0.5;
                                 ctx.strokeStyle = root.graphAccentColor;
                                 ctx.lineWidth = 1;
@@ -1052,22 +1126,26 @@ PlasmoidItem {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: Kirigami.Units.smallSpacing
+                        visible: root.graphShowLegend && (root.graphShowRaw || root.graphShowSmoothed)
 
                         Row {
+                            visible: root.graphShowRaw
                             Layout.alignment: Qt.AlignVCenter
                             spacing: 2
 
                             Repeater {
-                                model: 4
+                                model: root.legendSegments(root.graphRawStyle)
                                 Rectangle {
-                                    width: 3
-                                    height: 2
-                                    color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.45)
+                                    width: modelData.width
+                                    height: modelData.height
+                                    radius: modelData.radius
+                                    color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.55)
                                 }
                             }
                         }
 
                         PlasmaComponents3.Label {
+                            visible: root.graphShowRaw
                             text: "Raw"
                             font: Kirigami.Theme.smallFont
                             opacity: 0.8
@@ -1077,13 +1155,24 @@ PlasmoidItem {
                             Layout.fillWidth: true
                         }
 
-                        Rectangle {
-                            Layout.preferredWidth: 14
-                            Layout.preferredHeight: 2
-                            color: root.graphAccentColor
+                        Row {
+                            visible: root.graphShowSmoothed
+                            Layout.alignment: Qt.AlignVCenter
+                            spacing: 2
+
+                            Repeater {
+                                model: root.legendSegments(root.graphSmoothStyle)
+                                Rectangle {
+                                    width: modelData.width
+                                    height: modelData.height
+                                    radius: modelData.radius
+                                    color: root.graphAccentColor
+                                }
+                            }
                         }
 
                         PlasmaComponents3.Label {
+                            visible: root.graphShowSmoothed
                             text: "Smoothed"
                             font: Kirigami.Theme.smallFont
                             opacity: 0.8

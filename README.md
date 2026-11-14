@@ -61,7 +61,7 @@ The active curve is shown in the popup and tooltip. The popup curve buttons chan
 
 ## Graph
 
-The Graph tab shows the configured history window. The default is 60 seconds. The dim line is the raw reading. The highlighted line is the smoothed value used by the curve. The history resets when you change the input.
+The Graph page shows the configured history window. The default is 60 seconds. The dim line is the raw reading and the highlighted line is the smoothed value used by the curve. Either line can be hidden, and each can be solid, dashed, or dotted. The guide lines, peak line, legend, and an area fill under the smoothed line can also be turned off or on. The history resets when you change the input.
 
 ## Settings
 
@@ -70,7 +70,7 @@ Right click the widget and choose Configure. The settings are grouped into pages
 - Fan: minimum fan level, 3 to 7, and the temperature input source. The level clamps manual pins and every curve.
 - Curves: choose the preset for AC power, Default, and Power save.
 - Appearance: temperature unit, Show and Bold options for the level gauge, a Full circle or Arc shape choice, selectable level lines, number, and temperature line, and Show and Bold options for the level text, status, and temperature.
-- Graph: history duration in seconds. The default is 60.
+- Graph: history duration, Show and line style for the raw and smoothed lines, guide lines, peak line, legend, and an optional fill under the smoothed line.
 - Icon: show or hide the title icon and enter a theme icon name or SVG path. Clearing the field hides the icon.
 
 The temperature input selects what the curve and graph use:
