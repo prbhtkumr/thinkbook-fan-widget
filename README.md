@@ -9,19 +9,19 @@ The widget shows the current fan level as a dual ring gauge and shows whether th
 - Plasma 6
 - Lenovo ThinkBook 15 G2 ITL
 - `thinkpad_acpi` with `fan_control=1`
-- Python 3
+- Python 3.11 or newer for the service
 
 The fan controls are specific to this laptop. Other models may expose different EC registers.
 
 ## Install
 
-### Backend
+### Service
 
-```bash
-sudo ./backend/install.sh
-```
+This widget is a client for the standalone `thinkbook-fan` service. Install and
+configure that project first, then enable its service. The two exchange state
+through `/run/thinkbook-fan`, so the widget does not bundle a daemon.
 
-This installs the fan curve service and the `thinkpad_acpi` module options.
+Stop and disable any older fan service before starting the new one.
 
 ### Widget
 
@@ -100,7 +100,7 @@ The service uses the selected temperature input, takes the median of the last th
 
 The widget keeps samples for the configured graph duration. The default is 60 seconds.
 
-The service creates `/run/thinkbook-fan` as group writable for the `users` group. If your user is not in that group, change the group in `backend/thinkbook-fan-curve.py` or adjust the directory after the service starts.
+The service creates `/run/thinkbook-fan` as group writable. Set `paths.state_group` in the service configuration if your desktop user is not in the `users` group.
 
 ## Notes
 
@@ -111,9 +111,11 @@ The service creates `/run/thinkbook-fan` as group writable for the `users` group
 ## Uninstall
 
 ```bash
-sudo ./backend/uninstall.sh
 kpackagetool6 --type Plasma/Applet --remove io.github.prbhtkumr.thinkbookfan
 ```
+
+Disable and remove the service from the `thinkbook-fan` project if you no
+longer need it.
 
 ## License
 
