@@ -8,7 +8,7 @@ ThinkBook 15 G2 ITL.
 
 ![Settings](docs/settings.png)
 
-The widget shows the current fan level as a dual ring gauge and shows whether the service is on AC, on battery, or pinned. The inner segmented ring is the fan level, the outer arc is temperature, and a dot marks a pinned level. Click it to open the level menu. Scroll over it to move one level. Selecting Auto returns control to the AC/battery curve.
+The widget shows the current fan level as a dual ring gauge and shows whether the service is on AC, on battery, or pinned. The inner segmented ring is the fan level, the outer arc is temperature, and a dot marks a pinned level. Click it to open the level menu. Scroll over it to move one level. Middle click releases a pin and returns to the AC/battery curve.
 
 ## Requirements
 
@@ -45,10 +45,18 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 - Middle click: release the pinned level and resume the active curve.
 - Pick 0 to 7: pin that level.
 - Pick a curve: follow that curve and remove any pin.
+- Pick Firmware: hand the fan to the laptop and ignore the curves and minimum level.
+- Pick Unpin while a level is pinned: release the pin and return to the selected source.
 
-When a level is pinned, the curve buttons lose their highlight. The pinned level is the only active control.
+When a level is pinned, the curve buttons lose their highlight, and the Firmware button becomes Unpin. The pinned level is the only active control until you unpin or pick a curve.
 
 The popup status card shows level, mode, and temperature. The tooltip adds the commanded level, applied minimum, and watchdog when the service provides them.
+
+## Firmware control
+
+The Fan settings page can hand the fan back to the laptop firmware. While firmware control is active, the service writes `level auto` and stops commanding levels. The widget shows `AUTO` in the level slot and `FW` as the mode. The temperature arc, temperature text, and graph keep working.
+
+The fan level cannot be read back on this model, so the widget does not try to show the level the firmware picked. The minimum level and the curve presets are ignored in this mode. Picking a level still pins it as a temporary override, and unpinning returns control to firmware. Picking a curve takes control back and applies that curve.
 
 The compact title can show the icon, level gauge, level text, status, and temperature. The gauge is on by default and the level text is off, so the title starts with just the graphic level indicator. Enable Level text in Appearance to show `L3` as well. The gauge shows the level inside the center and fills the inner ring with the same curve color. It fills the available compact height with no widget padding, so a thicker panel gives a larger gauge and a thinner panel scales it down. The center number and the filled level lines are neutral on Balanced, amber on Aggressive, and green on Power save. The outer ring runs from blue at 30 C to red at 100 C. The gauge shape can be a full circle, which starts at the bottom and runs clockwise, or an arc with an open bottom. The level lines, number, and temperature line can each be turned off. When one is off, the remaining parts get thicker, and the number gets larger and bold when the level line is off. The tooltip shows the selected temperature in the selected unit.
 
@@ -80,7 +88,7 @@ The Graph page shows the configured history window. The default is 60 seconds. T
 
 Right click the widget and choose Configure. The settings are grouped into pages:
 
-- Fan: minimum fan level, 0 to 7, temperature input, and the curve preset for AC power, Default, and Power save. The minimum level clamps manual pins and every curve. Level 0 stops the fan; the service still raises it near the safety limit.
+- Fan: fan control source, minimum fan level, 0 to 7, temperature input, and the curve preset for AC power, Default, and Power save. Service curves keeps the service in control. Firmware default hands the fan to the laptop and ignores the curves and the minimum level. The minimum level clamps manual pins and every curve. Level 0 stops the fan; the service still raises it near the safety limit.
 - Appearance: temperature unit, gauge visibility, shape, parts, and colors, Show and Bold options for the title text, and the icon visibility and source.
 - Graph: history duration, Show and line style for the raw and smoothed lines, overlays, and color pickers for the lines, fill, peak, and guides.
 
@@ -93,7 +101,7 @@ The temperature input selects what the curve and graph use:
 
 The temperature unit defaults to the system locale. A changed unit is saved.
 
-The widget writes the minimum level to `/run/thinkbook-fan/min-level`, the curve selection to `/run/thinkbook-fan/curves`, and the input selection to `/run/thinkbook-fan/input`. The service reads them within 2 seconds.
+The widget writes the minimum level to `/run/thinkbook-fan/min-level`, the control source to `/run/thinkbook-fan/source`, the curve selection to `/run/thinkbook-fan/curves`, and the input selection to `/run/thinkbook-fan/input`. The service reads them within 2 seconds.
 
 ## How it works
 

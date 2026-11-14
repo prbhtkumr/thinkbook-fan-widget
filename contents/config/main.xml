@@ -6,6 +6,10 @@
             <label>Lowest fan level the widget will use.</label>
             <default>3</default>
         </entry>
+        <entry name="controlSource" type="String">
+            <label>Who controls the fan: the service curves or the laptop firmware.</label>
+            <default>curve</default>
+        </entry>
         <entry name="temperatureInput" type="String">
             <label>Temperature source used by the curve and the graph.</label>
             <default>max-all</default>

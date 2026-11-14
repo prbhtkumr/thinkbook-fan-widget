@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add a Fan control setting for service curves or firmware default
+- Add a Firmware button to the popup, replaced by Unpin while a level is pinned
+- Show `AUTO` and `FW` instead of a fake level while firmware controls the fan
+- Read the control source from the service status
+
 ## 0.1.0 - 2026-11-14
 
 - Dual ring level gauge with full circle and arc shapes

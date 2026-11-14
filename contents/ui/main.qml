@@ -12,6 +12,7 @@ PlasmoidItem {
 
     property int fanLevel: -1
     property string fanMode: "off"
+    property string fanSource: "curve"
     property string fanCurve: ""
     property string fanState: "default"
     property int fanTemp: -1
@@ -30,6 +31,7 @@ PlasmoidItem {
     property string configCurveAc: Plasmoid.configuration.curveAc || "auto"
     property string configCurveDefault: Plasmoid.configuration.curveDefault || "auto"
     property string configCurvePowerSave: Plasmoid.configuration.curvePowerSave || "power-save"
+    property string configControlSource: Plasmoid.configuration.controlSource || "curve"
     property string configTemperatureInput: Plasmoid.configuration.temperatureInput || "max-all"
     property var tempHistory: []
     property int historyLimit: 1000
@@ -118,10 +120,14 @@ PlasmoidItem {
     readonly property string pinFile: "/run/thinkbook-fan/pin"
     readonly property int effectiveLevel: pendingLevel >= 0 ? pendingLevel : fanLevel
     readonly property bool pinnedNow: pendingLevel >= 0 || fanMode === "pin"
-    readonly property string levelLabel: effectiveLevel >= 0 ? "L" + effectiveLevel : "L?"
+    readonly property bool firmwareNow: fanMode === "firmware" && !pinnedNow
+    readonly property string levelLabel: firmwareNow ? "AUTO" : (effectiveLevel >= 0 ? "L" + effectiveLevel : "L?")
     readonly property string modeLabel: {
         if (pinnedNow) {
             return "PIN"
+        }
+        if (firmwareNow) {
+            return "FW"
         }
         if (fanMode === "ac") {
             return "AC"
@@ -171,6 +177,7 @@ PlasmoidItem {
         if (!text || text.trim().length === 0) {
             fanLevel = -1
             fanMode = "off"
+            fanSource = "curve"
             fanCurve = ""
             fanState = "default"
             fanTemp = -1
@@ -187,6 +194,7 @@ PlasmoidItem {
             var state = JSON.parse(text)
             fanLevel = (typeof state.level === "number") ? state.level : -1
             fanMode = state.mode || "off"
+            fanSource = state.source || "curve"
             fanCurve = state.curve || ""
             fanState = state.state || (state.mode === "power-save" ? "power-save" : (state.ac ? "ac" : "default"))
             fanTemp = (typeof state.temp === "number") ? state.temp : -1
@@ -329,6 +337,11 @@ PlasmoidItem {
         ]
     }
 
+    function writeSource(source) {
+        var value = source === "firmware" ? "firmware" : "curve"
+        runCommand("sh -c 'printf \"%s\" " + value + " > /run/thinkbook-fan/source'")
+    }
+
     function writeCurveConfig() {
         var ac = validCurve(configCurveAc)
         var def = validCurve(configCurveDefault)
@@ -337,6 +350,10 @@ PlasmoidItem {
     }
 
     function setCurve(curve) {
+        if (configControlSource !== "curve") {
+            Plasmoid.configuration.controlSource = "curve"
+        }
+        writeSource("curve")
         if (fanState === "ac") {
             Plasmoid.configuration.curveAc = curve
         } else if (fanState === "power-save") {
@@ -349,9 +366,11 @@ PlasmoidItem {
 
     Component.onCompleted: {
         Qt.callLater(root.writeMinLevel)
+        Qt.callLater(() => root.writeSource(root.configControlSource))
         Qt.callLater(root.writeCurveConfig)
         Qt.callLater(root.writeTemperatureInput)
     }
+    onConfigControlSourceChanged: writeSource(configControlSource)
     onConfigMinLevelChanged: writeMinLevel()
     onConfigCurveAcChanged: writeCurveConfig()
     onConfigCurveDefaultChanged: writeCurveConfig()
@@ -416,6 +435,14 @@ PlasmoidItem {
 
     toolTipMainText: "ThinkBook fan"
     toolTipSubText: {
+        if (firmwareNow) {
+            var firmwareParts = ["Firmware control"]
+            if (fanTemp >= 0) {
+                firmwareParts.push(tempLabel)
+            }
+            firmwareParts.push("Pick a level or a curve to take over")
+            return firmwareParts.join(", ")
+        }
         if (effectiveLevel < 0) {
             return "No state from the fan service"
         }
@@ -604,9 +631,9 @@ PlasmoidItem {
                 PlasmaComponents3.Label {
                     anchors.centerIn: parent
                     visible: root.showGaugeNumber
-                    text: root.effectiveLevel >= 0 ? root.effectiveLevel : "?"
-                    color: root.gaugeLevelColor
-                    font.pixelSize: levelGauge.numberSize
+                    text: root.firmwareNow ? "AUTO" : (root.effectiveLevel >= 0 ? root.effectiveLevel : "?")
+                    color: root.firmwareNow ? Kirigami.Theme.textColor : root.gaugeLevelColor
+                    font.pixelSize: root.firmwareNow ? Math.round(levelGauge.numberSize * 0.55) : levelGauge.numberSize
                     font.bold: root.boldGauge || levelGauge.partCount < 3
                 }
 
@@ -809,14 +836,14 @@ PlasmoidItem {
             }
 
             PlasmaComponents3.Label {
-                text: "Curve"
+                text: "Fan control"
                 font.bold: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
             }
 
             GridLayout {
                 Layout.fillWidth: true
-                columns: 3
+                columns: 2
                 columnSpacing: Kirigami.Units.smallSpacing
 
                 PlasmaComponents3.Button {
@@ -887,6 +914,35 @@ PlasmoidItem {
 
                     onClicked: {
                         root.setCurve("aggressive")
+                        root.expanded = false
+                    }
+                }
+
+                PlasmaComponents3.Button {
+                    id: firmwareButton
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    text: root.pinnedNow ? "Unpin" : "Firmware"
+                    checkable: !root.pinnedNow
+                    checked: !root.pinnedNow && root.fanSource === "firmware"
+                    font.bold: checked
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Kirigami.Units.smallSpacing
+                        color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.3)
+                        border.width: 2
+                        border.color: Kirigami.Theme.highlightColor
+                        visible: firmwareButton.checked
+                    }
+
+                    onClicked: {
+                        if (root.pinnedNow) {
+                            root.clearPin()
+                        } else {
+                            Plasmoid.configuration.controlSource = "firmware"
+                            root.writeSource("firmware")
+                        }
                         root.expanded = false
                     }
                 }
