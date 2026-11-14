@@ -12,7 +12,8 @@
     ],
     "License": "MIT",
     "Version": "0.1.0",
-    "Category": "System Information"
+    "Category": "System Information",
+    "Website": "https://github.com/prbhtkumr/thinkbook-fan-widget"
   },
   "X-Plasma-API-Minimum-Version": "6.0"
 }

@@ -3,6 +3,7 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
+import org.kde.plasma.plasma5support as P5Support
 
 KCM.SimpleKCM {
     id: page
@@ -13,6 +14,7 @@ KCM.SimpleKCM {
     property string cfg_curveDefault: "auto"
     property string cfg_curvePowerSave: "power-save"
     property bool initialized: false
+    property int minWriteSeq: 0
 
     readonly property var curveModel: [
         { "label": "Balanced", "value": "auto" },
@@ -25,6 +27,11 @@ KCM.SimpleKCM {
     onCfg_curveDefaultChanged: page.syncCombo(curveDefaultBox, cfg_curveDefault)
     onCfg_curvePowerSaveChanged: page.syncCombo(curvePowerSaveBox, cfg_curvePowerSave)
 
+    function writeMinLevel(level) {
+        page.minWriteSeq += 1
+        minWriter.connectSource("sh -c 'printf \"%s\" " + level + " > /run/thinkbook-fan/min-level' # " + page.minWriteSeq)
+    }
+
     function syncCombo(combo, value) {
         if (!combo) {
             return
@@ -35,6 +42,12 @@ KCM.SimpleKCM {
                 return
             }
         }
+    }
+
+    P5Support.DataSource {
+        id: minWriter
+        engine: "executable"
+        onNewData: (source, data) => Qt.callLater(() => minWriter.disconnectSource(source))
     }
 
     Component.onCompleted: {
@@ -57,6 +70,11 @@ KCM.SimpleKCM {
             from: 0
             to: 7
             stepSize: 1
+            onValueChanged: {
+                if (page.initialized) {
+                    page.writeMinLevel(value)
+                }
+            }
         }
 
         QQC2.Label {

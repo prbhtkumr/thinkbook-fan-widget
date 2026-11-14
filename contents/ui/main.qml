@@ -380,13 +380,6 @@ PlasmoidItem {
     onGraphRawStyleChanged: refreshGraph()
     onGraphSmoothStyleChanged: refreshGraph()
 
-    Timer {
-        interval: 10000
-        running: true
-        repeat: true
-        onTriggered: root.writeMinLevel()
-    }
-
     P5Support.DataSource {
         id: stateSource
         engine: "executable"
