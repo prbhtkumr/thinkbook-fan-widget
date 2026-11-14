@@ -830,6 +830,7 @@ PlasmoidItem {
                         Layout.preferredWidth: 0
                         Layout.minimumWidth: 0
                         spacing: 0
+                        visible: root.fanRpm >= 0
 
                         PlasmaComponents3.Label {
                             Layout.fillWidth: true
