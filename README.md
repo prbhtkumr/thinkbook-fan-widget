@@ -48,7 +48,7 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 
 When a level is pinned, the curve buttons lose their highlight and an Unpin button appears below them. The pinned level is the only active control until you unpin or pick a curve.
 
-The popup status card shows level, mode, and temperature. The tooltip adds the commanded level, applied minimum, and watchdog when the service provides them.
+The popup status card shows level, mode, and temperature. The tooltip adds the commanded level, applied minimum, and watchdog when the service provides them. If the service has not written the status file for 15 seconds, the widget shows `STALE` and `N/A` instead of old values.
 
 The compact title can show the icon, level gauge, level text, status, and temperature. The gauge is on by default and the level text is off, so the title starts with just the graphic level indicator. Enable Level text in Appearance to show `L3` as well. The gauge shows the level inside the center and fills the inner ring with the same curve color. It fills the available compact height with no widget padding, so a thicker panel gives a larger gauge and a thinner panel scales it down. The center number and the filled level lines are neutral on Balanced, amber on Aggressive, and green on Power save. The outer ring runs from blue at 30 C to red at 100 C. The gauge shape can be a full circle, which starts at the bottom and runs clockwise, or an arc with an open bottom. The level lines, number, and temperature line can each be turned off. When one is off, the remaining parts get thicker, and the number gets larger and bold when the level line is off. The tooltip shows the selected temperature in the selected unit.
 
@@ -66,7 +66,7 @@ In Settings, choose which preset applies to each power state:
 - Default, meaning on battery
 - On power save, meaning the platform profile is low-power or the battery is at or below 20 percent
 
-The active curve is shown in the popup and tooltip. The popup curve buttons change the curve for the current power state and remove any manual pin. The compact display shows the status as `AC`, `BAT`, or `PWR` when status is enabled.
+The active curve is shown in the popup and tooltip. The popup curve buttons change the curve for the current power state and remove any manual pin. The compact display shows the status as `AC`, `BAT`, `PWR`, or `MAX` when status is enabled. `MAX` means the emergency temperature override is active, and it takes priority over a pin.
 
 ## Graph
 

@@ -7,6 +7,9 @@
 - Only create missing control files at panel start instead of overwriting CLI
   or service choices
 - Show minimum-level write errors in the Fan settings page
+- Show `MAX` when the emergency temperature override is active
+- Mark the state stale after 15 seconds and show `STALE` and `N/A` instead of old values
+- Validate state field types and cap the status file read
 
 ## 0.1.0 - 2026-11-14
 

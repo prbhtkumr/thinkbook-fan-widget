@@ -15,6 +15,7 @@ PlasmoidItem {
     property string fanCurve: ""
     property string fanState: "default"
     property int fanTemp: -1
+    property bool fanStale: false
     property int commandedLevel: -1
     property int appliedMinLevel: -1
     property int watchdogSeconds: -1
@@ -114,12 +115,18 @@ PlasmoidItem {
         return levels
     }
 
-    readonly property string stateCommand: "cat /run/thinkbook-fan/state 2>/dev/null"
+    readonly property string stateCommand: "dd if=/run/thinkbook-fan/state bs=65536 count=1 iflag=nonblock status=none 2>/dev/null"
     readonly property string pinFile: "/run/thinkbook-fan/pin"
     readonly property int effectiveLevel: pendingLevel >= 0 ? pendingLevel : fanLevel
     readonly property bool pinnedNow: pendingLevel >= 0 || fanMode === "pin"
-    readonly property string levelLabel: effectiveLevel >= 0 ? "L" + effectiveLevel : "L?"
+    readonly property string levelLabel: fanStale ? "N/A" : (effectiveLevel >= 0 ? "L" + effectiveLevel : "L?")
     readonly property string modeLabel: {
+        if (fanStale) {
+            return "STALE"
+        }
+        if (fanMode === "emergency") {
+            return "MAX"
+        }
         if (pinnedNow) {
             return "PIN"
         }
@@ -167,63 +174,86 @@ PlasmoidItem {
     }
     readonly property string tempLabel: fanTemp < 0 ? "N/A" : tempUnitLabel(fanTemp)
 
+    function validMode(value) {
+        if (value === "pin" || value === "ac" || value === "default" || value === "battery" || value === "power-save" || value === "emergency" || value === "off") {
+            return value
+        }
+        return "off"
+    }
+
+    function resetFanState() {
+        fanLevel = -1
+        fanMode = "off"
+        fanCurve = ""
+        fanState = "default"
+        fanTemp = -1
+        commandedLevel = -1
+        appliedMinLevel = -1
+        watchdogSeconds = -1
+        pinnedLevel = -1
+        pendingLevel = -1
+        pendingUntil = 0
+        fanStale = true
+    }
+
     function parseState(text) {
         if (!text || text.trim().length === 0) {
-            fanLevel = -1
-            fanMode = "off"
-            fanCurve = ""
-            fanState = "default"
-            fanTemp = -1
-            commandedLevel = -1
-            appliedMinLevel = -1
-            watchdogSeconds = -1
-            pinnedLevel = -1
-            pendingLevel = -1
-            pendingUntil = 0
+            resetFanState()
             return
         }
 
+        var state
         try {
-            var state = JSON.parse(text)
-            fanLevel = (typeof state.level === "number") ? state.level : -1
-            fanMode = state.mode || "off"
-            fanCurve = state.curve || ""
-            fanState = state.state || (state.mode === "power-save" ? "power-save" : (state.ac ? "ac" : "default"))
-            fanTemp = (typeof state.temp === "number") ? state.temp : -1
-            commandedLevel = (typeof state.commanded === "number") ? state.commanded : -1
-            appliedMinLevel = (typeof state.min === "number") ? state.min : -1
-            watchdogSeconds = (typeof state.watchdog === "number") ? state.watchdog : -1
-            pinnedLevel = (typeof state.pin === "number") ? state.pin : -1
+            state = JSON.parse(text)
+        } catch (error) {
+            resetFanState()
+            return
+        }
 
-            if (pendingLevel >= 0 && fanMode === "pin" && pinnedLevel === pendingLevel) {
-                pendingLevel = -1
-                pendingUntil = 0
-            } else if (pendingLevel >= 0 && Date.now() > pendingUntil) {
-                pendingLevel = -1
-            }
+        var updated = (typeof state.updated === "number") ? state.updated : 0
+        var now = Math.floor(Date.now() / 1000)
+        if (updated <= 0 || Math.abs(now - updated) > 15) {
+            resetFanState()
+            return
+        }
 
-            if (typeof state.temp === "number") {
-                var stamp = state.updated || 0
-                if (stamp !== lastHistoryUpdated) {
-                    lastHistoryUpdated = stamp
-                    var controlTemp = (typeof state.control === "number") ? state.control : state.temp
-                    var history = tempHistory.slice()
-                    var cutoff = stamp - graphDuration
-                    while (history.length > 0 && history[0].t < cutoff) {
-                        history.shift()
-                    }
-                    history.push({ "t": stamp, "raw": state.temp, "control": controlTemp })
-                    while (history.length > historyLimit) {
-                        history.shift()
-                    }
-                    tempHistory = history
-                    if (graphCanvasItem) {
-                        graphCanvasItem.requestPaint()
-                    }
+        fanStale = false
+        fanLevel = (typeof state.level === "number") ? state.level : -1
+        fanMode = validMode(state.mode)
+        fanCurve = (typeof state.curve === "string") ? state.curve : ""
+        fanState = (typeof state.state === "string") ? state.state : (fanMode === "power-save" ? "power-save" : (state.ac === true ? "ac" : "default"))
+        fanTemp = (typeof state.temp === "number") ? state.temp : -1
+        commandedLevel = (typeof state.commanded === "number") ? state.commanded : -1
+        appliedMinLevel = (typeof state.min === "number") ? state.min : -1
+        watchdogSeconds = (typeof state.watchdog === "number") ? state.watchdog : -1
+        pinnedLevel = (typeof state.pin === "number") ? state.pin : -1
+
+        if (pendingLevel >= 0 && fanMode === "pin" && pinnedLevel === pendingLevel) {
+            pendingLevel = -1
+            pendingUntil = 0
+        } else if (pendingLevel >= 0 && Date.now() > pendingUntil) {
+            pendingLevel = -1
+        }
+
+        if (typeof state.temp === "number") {
+            var stamp = updated
+            if (stamp !== lastHistoryUpdated) {
+                lastHistoryUpdated = stamp
+                var controlTemp = (typeof state.control === "number") ? state.control : state.temp
+                var history = tempHistory.slice()
+                var cutoff = stamp - graphDuration
+                while (history.length > 0 && history[0].t < cutoff) {
+                    history.shift()
+                }
+                history.push({ "t": stamp, "raw": state.temp, "control": controlTemp })
+                while (history.length > historyLimit) {
+                    history.shift()
+                }
+                tempHistory = history
+                if (graphCanvasItem) {
+                    graphCanvasItem.requestPaint()
                 }
             }
-        } catch (error) {
-            // Keep the last good state if the file was read mid-write.
         }
     }
 
@@ -422,6 +452,9 @@ PlasmoidItem {
 
     toolTipMainText: "ThinkBook fan"
     toolTipSubText: {
+        if (fanStale) {
+            return "No recent state from the fan service"
+        }
         if (effectiveLevel < 0) {
             return "No state from the fan service"
         }
