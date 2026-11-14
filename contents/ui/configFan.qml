@@ -54,7 +54,7 @@ KCM.SimpleKCM {
         QQC2.SpinBox {
             id: levelSpin
             Kirigami.FormData.label: "Minimum fan level:"
-            from: 3
+            from: 0
             to: 7
             stepSize: 1
         }
@@ -63,7 +63,7 @@ KCM.SimpleKCM {
             Layout.fillWidth: true
             Layout.preferredWidth: Kirigami.Units.gridUnit * 26
             Layout.maximumWidth: Kirigami.Units.gridUnit * 26
-            text: "Every curve and manual pin stays at or above this level."
+            text: "Every curve and manual pin stays at or above this level. Level 0 stops the fan; the service still raises it near the safety limit."
             font: Kirigami.Theme.smallFont
             opacity: 0.7
             wrapMode: Text.WordWrap

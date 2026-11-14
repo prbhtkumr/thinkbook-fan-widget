@@ -20,7 +20,10 @@ PlasmoidItem {
     property double pendingUntil: 0
     property string lastError: ""
     property int actionSeq: 0
-    property int configMinLevel: Plasmoid.configuration.minLevel || 3
+    property int configMinLevel: {
+        var value = Plasmoid.configuration.minLevel
+        return (value === undefined || value === null) ? 3 : value
+    }
     property string configCurveAc: Plasmoid.configuration.curveAc || "auto"
     property string configCurveDefault: Plasmoid.configuration.curveDefault || "auto"
     property string configCurvePowerSave: Plasmoid.configuration.curvePowerSave || "power-save"
@@ -44,7 +47,7 @@ PlasmoidItem {
     readonly property bool graphFill: Plasmoid.configuration.graphFill === true
     readonly property string graphRawStyle: validGraphStyle(Plasmoid.configuration.graphRawStyle, "dashed")
     readonly property string graphSmoothStyle: validGraphStyle(Plasmoid.configuration.graphSmoothStyle, "solid")
-    readonly property int minFanLevel: Math.max(3, Math.min(7, configMinLevel))
+    readonly property int minFanLevel: Math.max(0, Math.min(7, configMinLevel))
     readonly property string iconSource: {
         var source = Plasmoid.configuration.iconSource
         return (source === undefined || source === null) ? "../icons/fan.svg" : source

@@ -36,7 +36,7 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 - Left click: open the popup. Swipe or scroll horizontally between the Control and Graph pages.
 - Scroll up or down over the widget: change the fan level one step.
 - Middle click: release the pinned level and resume the active curve.
-- Pick 3 to 7: pin that level.
+- Pick 0 to 7: pin that level.
 - Pick a curve: follow that curve and remove any pin.
 
 When a level is pinned, the curve buttons lose their highlight. The pinned level is the only active control.
@@ -67,7 +67,7 @@ The Graph page shows the configured history window. The default is 60 seconds. T
 
 Right click the widget and choose Configure. The settings are grouped into pages:
 
-- Fan: minimum fan level, temperature input, and the curve preset for AC power, Default, and Power save. The minimum level clamps manual pins and every curve.
+- Fan: minimum fan level, 0 to 7, temperature input, and the curve preset for AC power, Default, and Power save. The minimum level clamps manual pins and every curve. Level 0 stops the fan; the service still raises it near the safety limit.
 - Appearance: temperature unit, gauge visibility, shape, parts, and colors, Show and Bold options for the title text, and the icon visibility and source.
 - Graph: history duration, Show and line style for the raw and smoothed lines, overlays, and color pickers for the lines, fill, peak, and guides.
 

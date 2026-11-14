@@ -28,7 +28,8 @@ MIN_LEVEL_FILE = os.path.join(STATE_DIR, "min-level")
 CURVE_FILE = os.path.join(STATE_DIR, "curves")
 INPUT_FILE = os.path.join(STATE_DIR, "input")
 INPUT_MODES = ("max-core", "avg-core", "package", "max-all")
-MIN_LEVEL = 3
+MIN_LEVEL = 0
+DEFAULT_MIN_LEVEL = 3
 POLL_SECONDS = 2
 REFRESH_SECONDS = 30
 HYSTERESIS_C = 3
@@ -37,27 +38,28 @@ SAFETY_C = 95
 LOW_BATTERY_PERCENT = 20
 TEMP_WINDOW = 3
 
-# (up_threshold_C, fan_level). Level 3 is the lowest allowed, 7 is max.
+# (up_threshold_C, fan_level). Level 0 is the lowest curve target, 7 is max.
+# The configured minimum level is applied as a floor.
 CURVES = {
     "auto": [
         (88, 7),
         (81, 6),
         (74, 5),
         (66, 4),
-        (0, 3),
+        (0, 0),
     ],
     "power-save": [
         (94, 7),
         (88, 5),
         (82, 4),
-        (0, 3),
+        (0, 0),
     ],
     "aggressive": [
         (80, 7),
         (74, 6),
         (68, 5),
         (60, 4),
-        (0, 3),
+        (0, 0),
     ],
 }
 DEFAULT_CURVES = {"ac": "auto", "default": "auto", "power-save": "power-save"}
@@ -102,7 +104,7 @@ def read_override():
 def read_min_level():
     value = read_int(MIN_LEVEL_FILE)
     if value is None:
-        return MIN_LEVEL
+        return DEFAULT_MIN_LEVEL
     return max(MIN_LEVEL, min(7, value))
 
 
