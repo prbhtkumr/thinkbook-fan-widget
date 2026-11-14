@@ -8,7 +8,7 @@ ThinkBook 15 G2 ITL.
 
 ![Settings](docs/settings.png)
 
-The widget shows the current fan level as a dual ring gauge and shows whether the service is on AC, on battery, or pinned. The inner segmented ring is the fan level, the outer arc is temperature, and a dot marks a pinned level. Click it to open the level menu. Scroll over it to move one level. Selecting Auto returns control to the AC/battery curve.
+The widget shows the current fan level as a dual ring gauge and shows whether the service is on AC, on battery, or pinned. The inner segmented ring is the fan level, the outer arc is temperature, and a dot marks a pinned level. Click it to open the level menu. Scroll over it to move one level. Middle click or Unpin releases a pinned level and returns to the AC/battery curve.
 
 ## Requirements
 
