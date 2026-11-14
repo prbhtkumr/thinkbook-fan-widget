@@ -237,7 +237,7 @@ PlasmoidItem {
         pendingLevel = level
         pendingUntil = Date.now() + 7000
         lastError = ""
-        runCommand("sh -c 'printf \"%s\" " + level + " > " + pinFile + "'")
+        runCommand("sh -c 'tmp=/run/thinkbook-fan/.pin.$$; printf \"%s\" " + level + " > \"$tmp\" && mv -f \"$tmp\" " + pinFile + "'")
     }
 
     function clearPin() {
@@ -261,8 +261,10 @@ PlasmoidItem {
         setLevel(base + delta)
     }
 
-    function writeMinLevel() {
-        runCommand("sh -c 'printf \"%s\" " + minFanLevel + " > /run/thinkbook-fan/min-level'")
+    function writeMinLevel(onlyIfMissing) {
+        var guard = onlyIfMissing ? "if [ ! -e /run/thinkbook-fan/min-level ]; then " : ""
+        var end = onlyIfMissing ? "; fi" : ""
+        runCommand("sh -c '" + guard + "tmp=/run/thinkbook-fan/.min.$$; printf \"%s\" " + minFanLevel + " > \"$tmp\" && mv -f \"$tmp\" /run/thinkbook-fan/min-level" + end + "'")
     }
 
     function validInput(name) {
@@ -272,9 +274,11 @@ PlasmoidItem {
         return "max-all"
     }
 
-    function writeTemperatureInput() {
+    function writeTemperatureInput(onlyIfMissing) {
         var mode = validInput(configTemperatureInput)
-        runCommand("sh -c 'printf \"%s\" " + mode + " > /run/thinkbook-fan/input'")
+        var guard = onlyIfMissing ? "if [ ! -e /run/thinkbook-fan/input ]; then " : ""
+        var end = onlyIfMissing ? "; fi" : ""
+        runCommand("sh -c '" + guard + "tmp=/run/thinkbook-fan/.input.$$; printf \"%s\" " + mode + " > \"$tmp\" && mv -f \"$tmp\" /run/thinkbook-fan/input" + end + "'")
     }
 
     function resetHistory() {
@@ -329,11 +333,13 @@ PlasmoidItem {
         ]
     }
 
-    function writeCurveConfig() {
+    function writeCurveConfig(onlyIfMissing) {
         var ac = validCurve(configCurveAc)
         var def = validCurve(configCurveDefault)
         var ps = validCurve(configCurvePowerSave)
-        runCommand("sh -c 'printf \"ac=%s\\ndefault=%s\\npower-save=%s\\n\" \"" + ac + "\" \"" + def + "\" \"" + ps + "\" > /run/thinkbook-fan/curves'")
+        var guard = onlyIfMissing ? "if [ ! -e /run/thinkbook-fan/curves ]; then " : ""
+        var end = onlyIfMissing ? "; fi" : ""
+        runCommand("sh -c '" + guard + "tmp=/run/thinkbook-fan/.curves.$$; printf \"ac=%s\\ndefault=%s\\npower-save=%s\\n\" \"" + ac + "\" \"" + def + "\" \"" + ps + "\" > \"$tmp\" && mv -f \"$tmp\" /run/thinkbook-fan/curves" + end + "'")
     }
 
     function setCurve(curve) {
@@ -348,9 +354,9 @@ PlasmoidItem {
     }
 
     Component.onCompleted: {
-        Qt.callLater(root.writeMinLevel)
-        Qt.callLater(root.writeCurveConfig)
-        Qt.callLater(root.writeTemperatureInput)
+        Qt.callLater(() => root.writeMinLevel(true))
+        Qt.callLater(() => root.writeCurveConfig(true))
+        Qt.callLater(() => root.writeTemperatureInput(true))
     }
     onConfigMinLevelChanged: writeMinLevel()
     onConfigCurveAcChanged: writeCurveConfig()

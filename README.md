@@ -93,7 +93,7 @@ The temperature input selects what the curve and graph use:
 
 The temperature unit defaults to the system locale. A changed unit is saved.
 
-The widget writes the minimum level to `/run/thinkbook-fan/min-level`, the curve selection to `/run/thinkbook-fan/curves`, and the input selection to `/run/thinkbook-fan/input`. The service reads them within 2 seconds.
+The widget writes the minimum level to `/run/thinkbook-fan/min-level`, the curve selection to `/run/thinkbook-fan/curves`, and the input selection to `/run/thinkbook-fan/input`. Each write goes to a temporary file and is renamed into place. At panel start, the widget only creates files that are missing, so it does not overwrite values set from the CLI or by the service configuration. The service reads them within 2 seconds. If a minimum-level write fails, the Fan settings page shows the error.
 
 ## How it works
 

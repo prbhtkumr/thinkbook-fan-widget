@@ -3,6 +3,10 @@
 ## Unreleased
 
 - Add an Unpin button to the popup while a level is pinned
+- Write control files atomically with a temporary file and rename
+- Only create missing control files at panel start instead of overwriting CLI
+  or service choices
+- Show minimum-level write errors in the Fan settings page
 
 ## 0.1.0 - 2026-11-14
 

@@ -15,6 +15,7 @@ KCM.SimpleKCM {
     property string cfg_curvePowerSave: "power-save"
     property bool initialized: false
     property int minWriteSeq: 0
+    property string writeError: ""
 
     readonly property var curveModel: [
         { "label": "Balanced", "value": "auto" },
@@ -29,7 +30,8 @@ KCM.SimpleKCM {
 
     function writeMinLevel(level) {
         page.minWriteSeq += 1
-        minWriter.connectSource("sh -c 'printf \"%s\" " + level + " > /run/thinkbook-fan/min-level' # " + page.minWriteSeq)
+        page.writeError = ""
+        minWriter.connectSource("sh -c 'tmp=/run/thinkbook-fan/.min.$$; printf \"%s\" " + level + " > \"$tmp\" && mv -f \"$tmp\" /run/thinkbook-fan/min-level' # " + page.minWriteSeq)
     }
 
     function syncCombo(combo, value) {
@@ -47,7 +49,12 @@ KCM.SimpleKCM {
     P5Support.DataSource {
         id: minWriter
         engine: "executable"
-        onNewData: (source, data) => Qt.callLater(() => minWriter.disconnectSource(source))
+        onNewData: (source, data) => {
+            if ("stderr" in data && data.stderr && data.stderr.length > 0) {
+                page.writeError = data.stderr.trim()
+            }
+            Qt.callLater(() => minWriter.disconnectSource(source))
+        }
     }
 
     Component.onCompleted: {
@@ -84,6 +91,15 @@ KCM.SimpleKCM {
             text: "Every curve and manual pin stays at or above this level. Level 0 stops the fan; the service still raises it near the safety limit."
             font: Kirigami.Theme.smallFont
             opacity: 0.7
+            wrapMode: Text.WordWrap
+        }
+
+        QQC2.Label {
+            Layout.fillWidth: true
+            visible: page.writeError.length > 0
+            text: page.writeError
+            color: Kirigami.Theme.negativeTextColor
+            font: Kirigami.Theme.smallFont
             wrapMode: Text.WordWrap
         }
 
