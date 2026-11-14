@@ -13,9 +13,42 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y qt6-declarative-dev-tools
+      - name: Locate qmlformat
+        id: tools
+        run: |
+          binary=""
+          for candidate in qmlformat6 qmlformat /usr/lib/qt6/bin/qmlformat6 /usr/lib/qt6/bin/qmlformat; do
+            if command -v "$candidate" >/dev/null 2>&1; then
+              binary="$(command -v "$candidate")"
+              break
+            fi
+          done
+          if [ -z "$binary" ]; then
+            echo "qmlformat not found"
+            ls /usr/lib/qt6/bin || true
+            exit 1
+          fi
+          echo "binary=$binary" >> "$GITHUB_OUTPUT"
+          "$binary" --version || true
       - name: Parse QML
         run: |
           for file in contents/ui/*.qml contents/config/*.qml; do
             echo "Checking $file"
-            qmlformat "$file" > /dev/null
+            "${{ steps.tools.outputs.binary }}" "$file" > /dev/null
           done
+      - name: Check package files
+        run: |
+          python3 -m json.tool metadata.json > /dev/null
+          python3 - <<'EOF'
+          import json
+          from pathlib import Path
+
+          meta = json.loads(Path("metadata.json").read_text())
+          kmeta = meta["KPlugin"]
+          for key in ("Id", "Name", "Version", "Category"):
+              assert kmeta.get(key), f"missing KPlugin.{key}"
+          assert Path("contents/ui/main.qml").is_file()
+          assert Path("contents/config/main.xml").is_file()
+          assert Path("contents/config/config.qml").is_file()
+          print("metadata and layout ok")
+          EOF

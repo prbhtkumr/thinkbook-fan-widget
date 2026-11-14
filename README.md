@@ -1,5 +1,8 @@
 # ThinkBook Fan Widget
 
+[![qml](https://github.com/prbhtkumr/thinkbook-fan-widget/actions/workflows/qml.yml/badge.svg)](https://github.com/prbhtkumr/thinkbook-fan-widget/actions/workflows/qml.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Plasma 6 panel widget for the standalone `thinkbook-fan` service on a Lenovo
 ThinkBook 15 G2 ITL.
 
