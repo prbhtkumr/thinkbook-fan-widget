@@ -41,6 +41,8 @@ Open the panel context menu, choose Add Widgets, and search for ThinkBook Fan.
 
 When a level is pinned, the curve buttons lose their highlight. The pinned level is the only active control.
 
+The popup status card shows level, mode, temperature, and fan RPM. RPM is read from the service state, so older services show N/A. The tooltip also shows the EC level, commanded level, applied minimum, and watchdog when the service provides them.
+
 The compact title can show the icon, level gauge, level text, status, and temperature. The gauge is on by default and the level text is off, so the title starts with just the graphic level indicator. Enable Level text in Appearance to show `L3` as well. The gauge shows the level inside the center and fills the inner ring with the same curve color. It fills the available compact height with no widget padding, so a thicker panel gives a larger gauge and a thinner panel scales it down. The center number and the filled level lines are neutral on Balanced, amber on Aggressive, and green on Power save. The outer ring runs from blue at 30 C to red at 100 C. The gauge shape can be a full circle, which starts at the bottom and runs clockwise, or an arc with an open bottom. The level lines, number, and temperature line can each be turned off. When one is off, the remaining parts get thicker, and the number gets larger and bold when the level line is off. The tooltip shows the selected temperature in the selected unit.
 
 ## Curves

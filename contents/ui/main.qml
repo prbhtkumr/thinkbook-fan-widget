@@ -15,6 +15,11 @@ PlasmoidItem {
     property string fanCurve: ""
     property string fanState: "default"
     property int fanTemp: -1
+    property int fanRpm: -1
+    property string ecLevel: ""
+    property int commandedLevel: -1
+    property int appliedMinLevel: -1
+    property int watchdogSeconds: -1
     property int pinnedLevel: -1
     property int pendingLevel: -1
     property double pendingUntil: 0
@@ -171,6 +176,11 @@ PlasmoidItem {
             fanCurve = ""
             fanState = "default"
             fanTemp = -1
+            fanRpm = -1
+            ecLevel = ""
+            commandedLevel = -1
+            appliedMinLevel = -1
+            watchdogSeconds = -1
             pinnedLevel = -1
             pendingLevel = -1
             pendingUntil = 0
@@ -184,6 +194,11 @@ PlasmoidItem {
             fanCurve = state.curve || ""
             fanState = state.state || (state.mode === "power-save" ? "power-save" : (state.ac ? "ac" : "default"))
             fanTemp = (typeof state.temp === "number") ? state.temp : -1
+            fanRpm = (typeof state.rpm === "number") ? state.rpm : -1
+            ecLevel = (typeof state.ec_level === "string") ? state.ec_level : ""
+            commandedLevel = (typeof state.commanded === "number") ? state.commanded : -1
+            appliedMinLevel = (typeof state.min === "number") ? state.min : -1
+            watchdogSeconds = (typeof state.watchdog === "number") ? state.watchdog : -1
             pinnedLevel = (typeof state.pin === "number") ? state.pin : -1
 
             if (pendingLevel >= 0 && fanMode === "pin" && pinnedLevel === pendingLevel) {
@@ -371,6 +386,13 @@ PlasmoidItem {
     onGraphRawStyleChanged: refreshGraph()
     onGraphSmoothStyleChanged: refreshGraph()
 
+    Timer {
+        interval: 10000
+        running: true
+        repeat: true
+        onTriggered: root.writeMinLevel()
+    }
+
     P5Support.DataSource {
         id: stateSource
         engine: "executable"
@@ -393,10 +415,7 @@ PlasmoidItem {
         engine: "executable"
 
         onNewData: (source, data) => {
-            if (!("stderr" in data)) {
-                return
-            }
-            if (data.stderr && data.stderr.length > 0) {
+            if ("stderr" in data && data.stderr && data.stderr.length > 0) {
                 root.lastError = data.stderr.trim()
                 root.pendingLevel = -1
                 root.pendingUntil = 0
@@ -419,6 +438,21 @@ PlasmoidItem {
         }
         if (fanTemp >= 0) {
             parts.push(tempLabel)
+        }
+        if (fanRpm >= 0) {
+            parts.push(fanRpm + " RPM" + (fanRpm === 0 && effectiveLevel > 0 ? " (stalled)" : ""))
+        }
+        if (ecLevel.length > 0 && ecLevel !== String(effectiveLevel)) {
+            parts.push("EC " + ecLevel)
+        }
+        if (commandedLevel >= 0 && commandedLevel !== effectiveLevel) {
+            parts.push("commanded " + commandedLevel)
+        }
+        if (appliedMinLevel >= 0) {
+            parts.push("min " + appliedMinLevel)
+        }
+        if (watchdogSeconds > 0) {
+            parts.push("watchdog " + watchdogSeconds + " s")
         }
         if (pinnedNow) {
             parts.push("Scroll to change, middle click to resume the curve")
@@ -788,6 +822,29 @@ PlasmoidItem {
                             text: root.tempLabel
                             font.bold: true
                             font.pixelSize: Math.round(Kirigami.Theme.defaultFont.pixelSize * 1.6)
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 0
+                        Layout.minimumWidth: 0
+                        spacing: 0
+
+                        PlasmaComponents3.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            text: "RPM"
+                            font: Kirigami.Theme.smallFont
+                            opacity: 0.7
+                        }
+                        PlasmaComponents3.Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            text: root.fanRpm >= 0 ? root.fanRpm : "N/A"
+                            font.bold: true
+                            font.pixelSize: Math.round(Kirigami.Theme.defaultFont.pixelSize * 1.6)
+                            color: root.fanRpm === 0 && root.effectiveLevel > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
                         }
                     }
                 }
