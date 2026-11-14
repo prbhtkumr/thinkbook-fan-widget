@@ -18,9 +18,26 @@ KCM.SimpleKCM {
     property alias cfg_boldStatus: boldStatusCheck.checked
     property alias cfg_showTemperature: showTemperatureCheck.checked
     property alias cfg_boldTemperature: boldTemperatureCheck.checked
+    property string cfg_gaugeBalancedColor: ""
+    property string cfg_gaugeAggressiveColor: ""
+    property string cfg_gaugePowerSaveColor: ""
+    property string cfg_gaugeTempLowColor: ""
+    property string cfg_gaugeTempHighColor: ""
+    property string cfg_gaugePinColor: ""
     property string cfg_temperatureUnit: "auto"
     property string cfg_gaugeShape: "full"
     property bool initialized: false
+
+    readonly property bool darkTheme: {
+        var bg = Kirigami.Theme.backgroundColor
+        return (0.2126 * bg.r + 0.7152 * bg.g + 0.0722 * bg.b) < 0.5
+    }
+    readonly property color gaugeBalancedFallback: Kirigami.Theme.textColor
+    readonly property color gaugeAggressiveFallback: darkTheme ? "#ffb74d" : "#a35f00"
+    readonly property color gaugePowerSaveFallback: darkTheme ? "#7fdc9c" : "#1d7a3d"
+    readonly property color gaugeTempLowFallback: "#5aa0ff"
+    readonly property color gaugeTempHighFallback: "#ff5a5a"
+    readonly property color gaugePinFallback: Qt.lighter(Kirigami.Theme.highlightColor, 1.4)
 
     onCfg_temperatureUnitChanged: page.syncCombo(temperatureUnitBox, cfg_temperatureUnit)
     onCfg_gaugeShapeChanged: page.syncCombo(gaugeShapeBox, cfg_gaugeShape)
@@ -160,6 +177,59 @@ KCM.SimpleKCM {
                 id: boldTemperatureCheck
                 text: "Bold"
             }
+        }
+
+        QQC2.Label {
+            Kirigami.FormData.isSection: true
+            text: "Gauge colors"
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Balanced:"
+            value: page.cfg_gaugeBalancedColor
+            fallbackColor: page.gaugeBalancedFallback
+            onColorPicked: (color) => page.cfg_gaugeBalancedColor = color.toString()
+            onResetRequested: page.cfg_gaugeBalancedColor = ""
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Aggressive:"
+            value: page.cfg_gaugeAggressiveColor
+            fallbackColor: page.gaugeAggressiveFallback
+            onColorPicked: (color) => page.cfg_gaugeAggressiveColor = color.toString()
+            onResetRequested: page.cfg_gaugeAggressiveColor = ""
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Power save:"
+            value: page.cfg_gaugePowerSaveColor
+            fallbackColor: page.gaugePowerSaveFallback
+            onColorPicked: (color) => page.cfg_gaugePowerSaveColor = color.toString()
+            onResetRequested: page.cfg_gaugePowerSaveColor = ""
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Temp low:"
+            value: page.cfg_gaugeTempLowColor
+            fallbackColor: page.gaugeTempLowFallback
+            onColorPicked: (color) => page.cfg_gaugeTempLowColor = color.toString()
+            onResetRequested: page.cfg_gaugeTempLowColor = ""
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Temp high:"
+            value: page.cfg_gaugeTempHighColor
+            fallbackColor: page.gaugeTempHighFallback
+            onColorPicked: (color) => page.cfg_gaugeTempHighColor = color.toString()
+            onResetRequested: page.cfg_gaugeTempHighColor = ""
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Pin marker:"
+            value: page.cfg_gaugePinColor
+            fallbackColor: page.gaugePinFallback
+            onColorPicked: (color) => page.cfg_gaugePinColor = color.toString()
+            onResetRequested: page.cfg_gaugePinColor = ""
         }
     }
 }

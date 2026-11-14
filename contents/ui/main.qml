@@ -31,6 +31,11 @@ PlasmoidItem {
     property var graphCanvasItem: null
     readonly property int graphDuration: Math.max(10, Math.min(900, Plasmoid.configuration.graphDuration || 60))
     readonly property color graphAccentColor: Qt.lighter(Kirigami.Theme.highlightColor, 1.4)
+    readonly property color graphRawColor: customColor(Plasmoid.configuration.graphRawColor, Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.55))
+    readonly property color graphSmoothColor: customColor(Plasmoid.configuration.graphSmoothColor, graphAccentColor)
+    readonly property color graphFillColor: customColor(Plasmoid.configuration.graphFillColor, Qt.rgba(graphAccentColor.r, graphAccentColor.g, graphAccentColor.b, 0.16))
+    readonly property color graphPeakColor: customColor(Plasmoid.configuration.graphPeakColor, graphAccentColor)
+    readonly property color graphGuideColor: customColor(Plasmoid.configuration.graphGuideColor, Kirigami.Theme.textColor)
     readonly property bool graphShowRaw: Plasmoid.configuration.graphShowRaw !== false
     readonly property bool graphShowSmoothed: Plasmoid.configuration.graphShowSmoothed !== false
     readonly property bool graphShowGuides: Plasmoid.configuration.graphShowGuides !== false
@@ -61,14 +66,20 @@ PlasmoidItem {
         var bg = Kirigami.Theme.backgroundColor
         return (0.2126 * bg.r + 0.7152 * bg.g + 0.0722 * bg.b) < 0.5
     }
+    readonly property color gaugeBalancedColor: customColor(Plasmoid.configuration.gaugeBalancedColor, Kirigami.Theme.textColor)
+    readonly property color gaugeAggressiveColor: customColor(Plasmoid.configuration.gaugeAggressiveColor, darkTheme ? "#ffb74d" : "#a35f00")
+    readonly property color gaugePowerSaveColor: customColor(Plasmoid.configuration.gaugePowerSaveColor, darkTheme ? "#7fdc9c" : "#1d7a3d")
+    readonly property color gaugeTempLowColor: customColor(Plasmoid.configuration.gaugeTempLowColor, "#5aa0ff")
+    readonly property color gaugeTempHighColor: customColor(Plasmoid.configuration.gaugeTempHighColor, "#ff5a5a")
+    readonly property color gaugePinColor: customColor(Plasmoid.configuration.gaugePinColor, graphAccentColor)
     readonly property color gaugeLevelColor: {
         if (fanCurve === "aggressive") {
-            return darkTheme ? "#ffb74d" : "#a35f00"
+            return gaugeAggressiveColor
         }
         if (fanCurve === "power-save") {
-            return darkTheme ? "#7fdc9c" : "#1d7a3d"
+            return gaugePowerSaveColor
         }
-        return Kirigami.Theme.textColor
+        return gaugeBalancedColor
     }
     readonly property int compactColumns: {
         var count = 0
@@ -278,6 +289,13 @@ PlasmoidItem {
             return value
         }
         return fallback
+    }
+
+    function customColor(value, fallback) {
+        if (value === undefined || value === null || value.length === 0) {
+            return fallback
+        }
+        return value
     }
 
     function legendSegments(style) {
@@ -495,12 +513,14 @@ PlasmoidItem {
                         }
                         var ringWidth = levelGauge.ringWidth;
 
+                        var lowColor = root.gaugeTempLowColor;
+                        var highColor = root.gaugeTempHighColor;
                         var tempColor = function(c) {
                             var t = Math.max(0, Math.min(1, (c - 30) / 70));
-                            var r = 90 + (255 - 90) * t;
-                            var g = 160 + (90 - 160) * t;
-                            var b = 255 + (90 - 255) * t;
-                            return Qt.rgba(r / 255, g / 255, b / 255, 1);
+                            var r = lowColor.r + (highColor.r - lowColor.r) * t;
+                            var g = lowColor.g + (highColor.g - lowColor.g) * t;
+                            var b = lowColor.b + (highColor.b - lowColor.b) * t;
+                            return Qt.rgba(r, g, b, 1);
                         };
 
                         if (drawTemp) {
@@ -579,7 +599,7 @@ PlasmoidItem {
                     width: 5
                     height: 5
                     radius: 2.5
-                    color: root.graphAccentColor
+                    color: root.gaugePinColor
                     border.width: 1
                     border.color: Kirigami.Theme.backgroundColor
                 }
@@ -1029,19 +1049,20 @@ PlasmoidItem {
 
                             if (root.graphShowGuides) {
                                 var guides = [40, 60, 80, 100];
+                                var guideColor = root.graphGuideColor;
                                 ctx.font = "10px sans-serif";
                                 ctx.textAlign = "right";
                                 ctx.textBaseline = "middle";
                                 for (var g = 0; g < guides.length; ++g) {
                                     var guideY = Math.round(yFor(guides[g])) + 0.5;
-                                    ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.12);
+                                    ctx.strokeStyle = Qt.rgba(guideColor.r, guideColor.g, guideColor.b, 0.12);
                                     ctx.lineWidth = 1;
                                     ctx.beginPath();
                                     ctx.moveTo(padLeft, guideY);
                                     ctx.lineTo(w - padRight, guideY);
                                     ctx.stroke();
 
-                                    ctx.fillStyle = textColor;
+                                    ctx.fillStyle = guideColor;
                                     ctx.globalAlpha = 0.6;
                                     ctx.fillText(root.tempUnitLabel(guides[g]), padLeft - 6, Math.max(padTop, Math.min(h - padBottom, guideY)));
                                     ctx.globalAlpha = 1;
@@ -1090,30 +1111,30 @@ PlasmoidItem {
                                 }
                                 ctx.lineTo(smoothPoints[smoothPoints.length - 1].x, padTop + plotH);
                                 ctx.closePath();
-                                ctx.fillStyle = Qt.rgba(root.graphAccentColor.r, root.graphAccentColor.g, root.graphAccentColor.b, 0.16);
+                                ctx.fillStyle = root.graphFillColor;
                                 ctx.fill();
                             }
 
                             if (root.graphShowRaw) {
-                                ctx.strokeStyle = Qt.rgba(textColor.r, textColor.g, textColor.b, 0.55);
+                                ctx.strokeStyle = root.graphRawColor;
                                 drawStyledLine(rawPoints, root.graphRawStyle, 1.4, 4, 3);
                             }
 
                             if (root.graphShowSmoothed) {
-                                ctx.strokeStyle = root.graphAccentColor;
+                                ctx.strokeStyle = root.graphSmoothColor;
                                 drawStyledLine(smoothPoints, root.graphSmoothStyle, 2, 6, 4);
                             }
                             ctx.restore();
 
                             if (root.graphShowPeak && maxRaw > -Infinity) {
                                 var peakY = Math.round(yFor(maxRaw)) + 0.5;
-                                ctx.strokeStyle = root.graphAccentColor;
+                                ctx.strokeStyle = root.graphPeakColor;
                                 ctx.lineWidth = 1;
                                 ctx.beginPath();
                                 drawDashedHorizontal(peakY, 6, 3);
 
-                                ctx.fillStyle = textColor;
-                                ctx.globalAlpha = 0.85;
+                                ctx.fillStyle = root.graphPeakColor;
+                                ctx.globalAlpha = 0.9;
                                 ctx.font = "10px sans-serif";
                                 ctx.textAlign = "right";
                                 ctx.textBaseline = "bottom";
@@ -1139,7 +1160,7 @@ PlasmoidItem {
                                     width: modelData.width
                                     height: modelData.height
                                     radius: modelData.radius
-                                    color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.55)
+                                    color: root.graphRawColor
                                 }
                             }
                         }
@@ -1166,7 +1187,7 @@ PlasmoidItem {
                                     width: modelData.width
                                     height: modelData.height
                                     radius: modelData.radius
-                                    color: root.graphAccentColor
+                                    color: root.graphSmoothColor
                                 }
                             }
                         }

@@ -46,6 +46,26 @@
             <label>Fill the area under the smoothed line.</label>
             <default>false</default>
         </entry>
+        <entry name="graphRawColor" type="String">
+            <label>Custom color for the raw graph line.</label>
+            <default></default>
+        </entry>
+        <entry name="graphSmoothColor" type="String">
+            <label>Custom color for the smoothed graph line.</label>
+            <default></default>
+        </entry>
+        <entry name="graphFillColor" type="String">
+            <label>Custom color for the graph area fill.</label>
+            <default></default>
+        </entry>
+        <entry name="graphPeakColor" type="String">
+            <label>Custom color for the graph peak line.</label>
+            <default></default>
+        </entry>
+        <entry name="graphGuideColor" type="String">
+            <label>Custom color for the graph guide lines.</label>
+            <default></default>
+        </entry>
         <entry name="temperatureUnit" type="String">
             <label>Temperature unit for the display.</label>
             <default>auto</default>
@@ -89,6 +109,30 @@
         <entry name="boldGauge" type="Bool">
             <label>Show the level number in the gauge in bold.</label>
             <default>true</default>
+        </entry>
+        <entry name="gaugeBalancedColor" type="String">
+            <label>Custom color for the Balanced gauge level.</label>
+            <default></default>
+        </entry>
+        <entry name="gaugeAggressiveColor" type="String">
+            <label>Custom color for the Aggressive gauge level.</label>
+            <default></default>
+        </entry>
+        <entry name="gaugePowerSaveColor" type="String">
+            <label>Custom color for the Power save gauge level.</label>
+            <default></default>
+        </entry>
+        <entry name="gaugeTempLowColor" type="String">
+            <label>Custom color for the low end of the gauge temperature line.</label>
+            <default></default>
+        </entry>
+        <entry name="gaugeTempHighColor" type="String">
+            <label>Custom color for the high end of the gauge temperature line.</label>
+            <default></default>
+        </entry>
+        <entry name="gaugePinColor" type="String">
+            <label>Custom color for the gauge pin marker.</label>
+            <default></default>
         </entry>
         <entry name="showLevel" type="Bool">
             <label>Show the fan level text in the compact display.</label>

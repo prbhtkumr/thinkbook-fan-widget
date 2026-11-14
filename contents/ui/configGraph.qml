@@ -16,7 +16,19 @@ KCM.SimpleKCM {
     property alias cfg_graphFill: fillCheck.checked
     property string cfg_graphRawStyle: "dashed"
     property string cfg_graphSmoothStyle: "solid"
+    property string cfg_graphRawColor: ""
+    property string cfg_graphSmoothColor: ""
+    property string cfg_graphFillColor: ""
+    property string cfg_graphPeakColor: ""
+    property string cfg_graphGuideColor: ""
     property bool initialized: false
+
+    readonly property color textColor: Kirigami.Theme.textColor
+    readonly property color smoothFallback: Qt.lighter(Kirigami.Theme.highlightColor, 1.4)
+    readonly property color rawFallback: Qt.rgba(textColor.r, textColor.g, textColor.b, 0.55)
+    readonly property color fillFallback: Qt.rgba(smoothFallback.r, smoothFallback.g, smoothFallback.b, 0.16)
+    readonly property color peakFallback: smoothFallback
+    readonly property color guideFallback: textColor
 
     readonly property var styleModel: [
         { "label": "Solid", "value": "solid" },
@@ -142,6 +154,53 @@ KCM.SimpleKCM {
         QQC2.CheckBox {
             id: fillCheck
             text: "Fill under smoothed line"
+        }
+
+        QQC2.Label {
+            Kirigami.FormData.isSection: true
+            text: "Graph colors"
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Raw line:"
+            value: page.cfg_graphRawColor
+            fallbackColor: page.rawFallback
+            showAlphaChannel: true
+            onColorPicked: (color) => page.cfg_graphRawColor = color.toString()
+            onResetRequested: page.cfg_graphRawColor = ""
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Smoothed line:"
+            value: page.cfg_graphSmoothColor
+            fallbackColor: page.smoothFallback
+            onColorPicked: (color) => page.cfg_graphSmoothColor = color.toString()
+            onResetRequested: page.cfg_graphSmoothColor = ""
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Area fill:"
+            value: page.cfg_graphFillColor
+            fallbackColor: page.fillFallback
+            showAlphaChannel: true
+            onColorPicked: (color) => page.cfg_graphFillColor = color.toString()
+            onResetRequested: page.cfg_graphFillColor = ""
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Peak line:"
+            value: page.cfg_graphPeakColor
+            fallbackColor: page.peakFallback
+            onColorPicked: (color) => page.cfg_graphPeakColor = color.toString()
+            onResetRequested: page.cfg_graphPeakColor = ""
+        }
+
+        ColorSetting {
+            Kirigami.FormData.label: "Guide lines:"
+            value: page.cfg_graphGuideColor
+            fallbackColor: page.guideFallback
+            onColorPicked: (color) => page.cfg_graphGuideColor = color.toString()
+            onResetRequested: page.cfg_graphGuideColor = ""
         }
     }
 }
