@@ -58,6 +58,11 @@ KCM.SimpleKCM {
     }
 
     Kirigami.FormLayout {
+        QQC2.Label {
+            Kirigami.FormData.isSection: true
+            text: "History"
+        }
+
         QQC2.SpinBox {
             id: durationSpin
             Kirigami.FormData.label: "Duration (seconds):"
@@ -69,6 +74,8 @@ KCM.SimpleKCM {
 
         QQC2.Label {
             Layout.fillWidth: true
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 26
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 26
             text: "History window for the Graph page."
             font: Kirigami.Theme.smallFont
             opacity: 0.7
@@ -90,7 +97,8 @@ KCM.SimpleKCM {
 
             QQC2.ComboBox {
                 id: rawStyleBox
-                Layout.fillWidth: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 15
+            implicitWidth: Kirigami.Units.gridUnit * 15
                 textRole: "label"
                 model: page.styleModel
                 onCurrentIndexChanged: {
@@ -112,7 +120,8 @@ KCM.SimpleKCM {
 
             QQC2.ComboBox {
                 id: smoothStyleBox
-                Layout.fillWidth: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 15
+            implicitWidth: Kirigami.Units.gridUnit * 15
                 textRole: "label"
                 model: page.styleModel
                 onCurrentIndexChanged: {
@@ -125,6 +134,8 @@ KCM.SimpleKCM {
 
         QQC2.Label {
             Layout.fillWidth: true
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 26
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 26
             text: "Raw is the selected sensor. Smoothed is the median used by the curve."
             font: Kirigami.Theme.smallFont
             opacity: 0.7
@@ -133,7 +144,7 @@ KCM.SimpleKCM {
 
         QQC2.Label {
             Kirigami.FormData.isSection: true
-            text: "Extras"
+            text: "Overlays"
         }
 
         QQC2.CheckBox {

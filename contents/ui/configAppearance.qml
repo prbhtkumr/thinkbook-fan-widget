@@ -7,6 +7,8 @@ import org.kde.kcmutils as KCM
 KCM.SimpleKCM {
     id: page
 
+    property alias cfg_showIcon: showIconCheck.checked
+    property alias cfg_iconSource: iconField.text
     property alias cfg_showGauge: showGaugeCheck.checked
     property alias cfg_showGaugeLevel: showGaugeLevelCheck.checked
     property alias cfg_showGaugeNumber: showGaugeNumberCheck.checked
@@ -18,6 +20,7 @@ KCM.SimpleKCM {
     property alias cfg_boldStatus: boldStatusCheck.checked
     property alias cfg_showTemperature: showTemperatureCheck.checked
     property alias cfg_boldTemperature: boldTemperatureCheck.checked
+
     property string cfg_gaugeBalancedColor: ""
     property string cfg_gaugeAggressiveColor: ""
     property string cfg_gaugePowerSaveColor: ""
@@ -32,6 +35,7 @@ KCM.SimpleKCM {
         var bg = Kirigami.Theme.backgroundColor
         return (0.2126 * bg.r + 0.7152 * bg.g + 0.0722 * bg.b) < 0.5
     }
+
     readonly property color gaugeBalancedFallback: Kirigami.Theme.textColor
     readonly property color gaugeAggressiveFallback: darkTheme ? "#ffb74d" : "#a35f00"
     readonly property color gaugePowerSaveFallback: darkTheme ? "#7fdc9c" : "#1d7a3d"
@@ -61,10 +65,16 @@ KCM.SimpleKCM {
     }
 
     Kirigami.FormLayout {
+        QQC2.Label {
+            Kirigami.FormData.isSection: true
+            text: "Units"
+        }
+
         QQC2.ComboBox {
             id: temperatureUnitBox
-            Layout.fillWidth: true
-            Kirigami.FormData.label: "Temperature:"
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 15
+            implicitWidth: Kirigami.Units.gridUnit * 15
+            Kirigami.FormData.label: "Temperature unit:"
             textRole: "label"
             model: [
                 { "label": "System locale", "value": "auto" },
@@ -80,7 +90,7 @@ KCM.SimpleKCM {
 
         QQC2.Label {
             Kirigami.FormData.isSection: true
-            text: "Title items"
+            text: "Gauge"
         }
 
         RowLayout {
@@ -100,7 +110,8 @@ KCM.SimpleKCM {
 
         QQC2.ComboBox {
             id: gaugeShapeBox
-            Layout.fillWidth: true
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 15
+            implicitWidth: Kirigami.Units.gridUnit * 15
             Kirigami.FormData.label: "Gauge shape:"
             textRole: "label"
             model: [
@@ -131,51 +142,6 @@ KCM.SimpleKCM {
             QQC2.CheckBox {
                 id: showGaugeTempCheck
                 text: "Temp line"
-            }
-        }
-
-        RowLayout {
-            Kirigami.FormData.label: "Level text:"
-            spacing: Kirigami.Units.largeSpacing
-
-            QQC2.CheckBox {
-                id: showLevelCheck
-                text: "Show"
-            }
-
-            QQC2.CheckBox {
-                id: boldLevelCheck
-                text: "Bold"
-            }
-        }
-
-        RowLayout {
-            Kirigami.FormData.label: "Status:"
-            spacing: Kirigami.Units.largeSpacing
-
-            QQC2.CheckBox {
-                id: showStatusCheck
-                text: "Show"
-            }
-
-            QQC2.CheckBox {
-                id: boldStatusCheck
-                text: "Bold"
-            }
-        }
-
-        RowLayout {
-            Kirigami.FormData.label: "Temperature:"
-            spacing: Kirigami.Units.largeSpacing
-
-            QQC2.CheckBox {
-                id: showTemperatureCheck
-                text: "Show"
-            }
-
-            QQC2.CheckBox {
-                id: boldTemperatureCheck
-                text: "Bold"
             }
         }
 
@@ -230,6 +196,85 @@ KCM.SimpleKCM {
             fallbackColor: page.gaugePinFallback
             onColorPicked: (color) => page.cfg_gaugePinColor = color.toString()
             onResetRequested: page.cfg_gaugePinColor = ""
+        }
+
+        QQC2.Label {
+            Kirigami.FormData.isSection: true
+            text: "Title text"
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: "Level text:"
+            spacing: Kirigami.Units.largeSpacing
+
+            QQC2.CheckBox {
+                id: showLevelCheck
+                text: "Show"
+            }
+
+            QQC2.CheckBox {
+                id: boldLevelCheck
+                text: "Bold"
+            }
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: "Status:"
+            spacing: Kirigami.Units.largeSpacing
+
+            QQC2.CheckBox {
+                id: showStatusCheck
+                text: "Show"
+            }
+
+            QQC2.CheckBox {
+                id: boldStatusCheck
+                text: "Bold"
+            }
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: "Temperature:"
+            spacing: Kirigami.Units.largeSpacing
+
+            QQC2.CheckBox {
+                id: showTemperatureCheck
+                text: "Show"
+            }
+
+            QQC2.CheckBox {
+                id: boldTemperatureCheck
+                text: "Bold"
+            }
+        }
+
+        QQC2.Label {
+            Kirigami.FormData.isSection: true
+            text: "Icon"
+        }
+
+        QQC2.CheckBox {
+            id: showIconCheck
+            Kirigami.FormData.label: "Visibility:"
+            text: "Show icon"
+        }
+
+        QQC2.TextField {
+            id: iconField
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 18
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 18
+            Kirigami.FormData.label: "Source:"
+            placeholderText: "Theme icon name or /path/to/icon.svg"
+        }
+
+        QQC2.Label {
+            Layout.fillWidth: true
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 26
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 26
+            text: "Use a theme icon name or a path to an SVG file. Clear the field or uncheck Show icon to hide it."
+            font: Kirigami.Theme.smallFont
+            opacity: 0.7
+            wrapMode: Text.WordWrap
         }
     }
 }

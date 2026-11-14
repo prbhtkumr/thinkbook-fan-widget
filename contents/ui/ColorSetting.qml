@@ -21,6 +21,9 @@ RowLayout {
         showAlphaChannel: root.showAlphaChannel
         dialogTitle: "Choose a color"
         onAccepted: (color) => root.colorPicked(color)
+
+        QQC2.ToolTip.text: root.value.length > 0 ? root.value : "Default color"
+        QQC2.ToolTip.visible: hovered
     }
 
     QQC2.ToolButton {
@@ -29,12 +32,6 @@ RowLayout {
         onClicked: root.resetRequested()
         QQC2.ToolTip.text: "Use the default color"
         QQC2.ToolTip.visible: hovered
-    }
-
-    QQC2.Label {
-        text: root.value.length > 0 ? root.value : "Default"
-        font: Kirigami.Theme.smallFont
-        opacity: 0.7
     }
 
     onValueChanged: if (colorButton) colorButton.color = root.resolvedColor

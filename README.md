@@ -67,11 +67,9 @@ The Graph page shows the configured history window. The default is 60 seconds. T
 
 Right click the widget and choose Configure. The settings are grouped into pages:
 
-- Fan: minimum fan level, 3 to 7, and the temperature input source. The level clamps manual pins and every curve.
-- Curves: choose the preset for AC power, Default, and Power save.
-- Appearance: temperature unit, Show and Bold options for the level gauge, a Full circle or Arc shape choice, selectable level lines, number, and temperature line, gauge colors for Balanced, Aggressive, Power save, temp low, temp high, and the pin marker, and Show and Bold options for the level text, status, and temperature.
-- Graph: history duration, Show and line style for the raw and smoothed lines, guide lines, peak line, legend, an optional fill under the smoothed line, and color pickers for the raw line, smoothed line, area fill, peak line, and guide lines.
-- Icon: show or hide the title icon and enter a theme icon name or SVG path. Clearing the field hides the icon.
+- Fan: minimum fan level, temperature input, and the curve preset for AC power, Default, and Power save. The minimum level clamps manual pins and every curve.
+- Appearance: temperature unit, gauge visibility, shape, parts, and colors, Show and Bold options for the title text, and the icon visibility and source.
+- Graph: history duration, Show and line style for the raw and smoothed lines, overlays, and color pickers for the lines, fill, peak, and guides.
 
 The temperature input selects what the curve and graph use:
 
