@@ -631,9 +631,9 @@ PlasmoidItem {
                 PlasmaComponents3.Label {
                     anchors.centerIn: parent
                     visible: root.showGaugeNumber
-                    text: root.firmwareNow ? "AUTO" : (root.effectiveLevel >= 0 ? root.effectiveLevel : "?")
+                    text: root.firmwareNow ? "FW" : (root.effectiveLevel >= 0 ? root.effectiveLevel : "?")
                     color: root.firmwareNow ? Kirigami.Theme.textColor : root.gaugeLevelColor
-                    font.pixelSize: root.firmwareNow ? Math.round(levelGauge.numberSize * 0.55) : levelGauge.numberSize
+                    font.pixelSize: root.firmwareNow ? Math.round(levelGauge.numberSize * 0.7) : levelGauge.numberSize
                     font.bold: root.boldGauge || levelGauge.partCount < 3
                 }
 
